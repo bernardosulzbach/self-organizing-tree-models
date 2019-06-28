@@ -1,6 +1,7 @@
 #include "MarkerSet.hpp"
 
 #include <algorithm>
+#include <iostream>
 #include <stdexcept>
 
 #include "PointAverage.hpp"
@@ -8,7 +9,7 @@
 
 MarkerSet::MarkerSet(float sideLength, U64 resolution, U64 pointCount)
     : xRange(-0.5f * sideLength, +0.5 * sideLength), yRange(0.0f, sideLength),
-      zRange(-0.5f * sideLength, +0.5 * sideLength) {
+      zRange(-0.5f * sideLength, +0.5 * sideLength), resolution(resolution) {
   if (sideLength <= 0.0f) {
     throw std::domain_error("Side length cannot be <= 0.0f.");
   }
@@ -45,10 +46,11 @@ MarkerSet::MarkerSet(float sideLength, U64 resolution, U64 pointCount)
 }
 
 void MarkerSet::removeSphere(Point center, float radius) {
-  // TODO: optimize this to skip over vectors which cannot intersect with the sphere.
-  for (auto &xVector : points) {
-    for (auto &xyVector : xVector) {
-      for (auto &xyzVector : xyVector) {
+  const auto ranges = getRangesForSphere(center, radius);
+  for (auto x = ranges.minX; x < ranges.maxX; x++) {
+    for (auto y = ranges.minY; y < ranges.maxY; y++) {
+      for (auto z = ranges.minZ; z < ranges.maxZ; z++) {
+        auto &xyzVector = points[x][y][z];
         const auto predicate = [center, radius](Point &point) { return point.distance(center) < radius; };
         xyzVector.erase(std::remove_if(std::begin(xyzVector), std::end(xyzVector), predicate), std::end(xyzVector));
       }
@@ -57,12 +59,12 @@ void MarkerSet::removeSphere(Point center, float radius) {
 }
 
 SpaceAnalysis MarkerSet::analyze(Point origin, Vector direction, float theta, float r) const {
-  // TODO: optimize this to skip over vectors which cannot intersect with the sphere.
   PointAverage pointAverage;
-  for (auto &xVector : points) {
-    for (auto &xyVector : xVector) {
-      for (auto &xyzVector : xyVector) {
-        for (auto &point : xyzVector) {
+  const auto ranges = getRangesForSphere(origin, r);
+  for (auto x = ranges.minX; x < ranges.maxX; x++) {
+    for (auto y = ranges.minY; y < ranges.maxY; y++) {
+      for (auto z = ranges.minZ; z < ranges.maxZ; z++) {
+        for (const auto &point : points[x][y][z]) {
           // Is within the distance?
           if (point.distance(origin) < r) {
             // Is within angle?
@@ -74,10 +76,33 @@ SpaceAnalysis MarkerSet::analyze(Point origin, Vector direction, float theta, fl
       }
     }
   }
-  SpaceAnalysis spaceAnalysis;
+  SpaceAnalysis spaceAnalysis{};
   if (pointAverage.count != 0.0f) {
     spaceAnalysis.q = 1.0f;
     spaceAnalysis.v = Vector(origin, pointAverage.average).normalize();
   }
   return spaceAnalysis;
+}
+
+static Range getRange(Range range, float resolution, float x, float radius) {
+  const auto minimum = range.minimum;
+  const auto maximum = range.maximum;
+  const auto step = (maximum - minimum) / resolution;
+  const auto low = std::clamp(std::floor((x - radius - minimum) / step), 0.0f, resolution);
+  const auto high = std::clamp(std::ceil((x + radius - minimum) / step), 0.0f, resolution);
+  return Range(low, high);
+}
+
+MarkerSetRanges MarkerSet::getRangesForSphere(Point origin, float radius) const {
+  MarkerSetRanges ranges;
+  const auto xIndexRange = getRange(xRange, resolution, origin.x, radius);
+  ranges.minX = static_cast<U64>(xIndexRange.minimum);
+  ranges.maxX = static_cast<U64>(xIndexRange.maximum);
+  const auto yIndexRange = getRange(yRange, resolution, origin.y, radius);
+  ranges.minY = static_cast<U64>(yIndexRange.minimum);
+  ranges.maxY = static_cast<U64>(yIndexRange.maximum);
+  const auto zIndexRange = getRange(zRange, resolution, origin.z, radius);
+  ranges.minZ = static_cast<U64>(zIndexRange.minimum);
+  ranges.maxZ = static_cast<U64>(zIndexRange.maximum);
+  return ranges;
 }

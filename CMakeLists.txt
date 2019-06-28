@@ -49,7 +49,9 @@ add_executable(self-organizing-tree-models
                src/SpaceAnalysis.cpp
                src/SpaceAnalysis.hpp
                src/PointAverage.cpp
-               src/PointAverage.hpp)
+               src/PointAverage.hpp
+               src/MarkerSetRanges.cpp
+               src/MarkerSetRanges.hpp)
 
 find_package(glm REQUIRED)
 

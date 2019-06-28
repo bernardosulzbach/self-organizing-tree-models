@@ -12,3 +12,7 @@ float Range::interpolate(U64 value, U64 resolution) const {
   const auto factor = static_cast<float>(value) / static_cast<float>(resolution);
   return minimum + factor * (maximum - minimum);
 }
+
+float Range::getLength() const {
+  return maximum - minimum;
+}

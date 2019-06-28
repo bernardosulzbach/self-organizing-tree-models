@@ -10,4 +10,6 @@ public:
   Range(float minimum, float maximum);
 
   float interpolate(U64 value, U64 resolution) const;
+
+  float getLength() const;
 };
