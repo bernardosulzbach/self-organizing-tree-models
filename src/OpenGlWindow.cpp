@@ -157,8 +157,42 @@ void OpenGlWindow::setUpVertexArrays() {
   glDeleteBuffers(1, &vertexBuffer);
 }
 
+/**
+ * Returns the matrix required to align A with B.
+ *
+ * Uses the formulation proposed in https://math.stackexchange.com/questions/180418/.
+ */
+static glm::mat4 getAlignmentMatrix(Vector a, Vector b) {
+  a = a.normalize();
+  b = b.normalize();
+  const auto c = a.dot(b);
+  if (std::abs(c) > (1.0f - 1.0e-6f)) {
+    return glm::mat4(1.0f);
+  }
+  const auto v = a.cross(b);
+  auto skewSymmetric = glm::mat4(0.0f);
+  skewSymmetric[0][1] = +v.z;
+  skewSymmetric[0][2] = -v.y;
+  skewSymmetric[1][0] = -v.z;
+  skewSymmetric[1][2] = +v.x;
+  skewSymmetric[2][0] = +v.y;
+  skewSymmetric[2][1] = -v.x;
+  return glm::mat4(1.0f) + skewSymmetric + skewSymmetric * skewSymmetric / (1.0f + c);
+}
+
 glm::mat4 modelMatrixFromMetamer(const std::unique_ptr<Metamer> &metamer) {
-  return glm::mat4(1.0f);
+  // The cylinder is 2 meters high and has 1 meter radius. Its center is at the origin.
+  // Scale it on Y to get the right length.
+  const auto yScale = Environment::MetamerLength / 2.0f;
+  const auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(metamer->width, yScale, metamer->width));
+  // Rotate it so that the orientation is correct.
+  // TODO: align these vectors
+  const auto rotation = getAlignmentMatrix(Vector(0.0f, 1.0f, 0.0f), Vector(metamer->beginning, metamer->end));
+  // Translate it so that the centers match.
+  const auto metamerCenter = metamer->getCenter();
+  const auto center = glm::vec3(metamerCenter.x, metamerCenter.y, metamerCenter.z);
+  const auto translation = glm::translate(glm::mat4(1.0f), center);
+  return translation * rotation * scale;
 }
 
 void OpenGlWindow::drawMetamers(const std::unique_ptr<Metamer> &metamer) {
@@ -168,6 +202,7 @@ void OpenGlWindow::drawMetamers(const std::unique_ptr<Metamer> &metamer) {
   const auto transform = modelMatrixFromMetamer(metamer);
   glUniformMatrix4fv(openGlCylinderProgramModelMatrixUniformLocation, 1, GL_FALSE, glm::value_ptr(transform));
   glDrawArrays(GL_TRIANGLES, 0, 3 * (4 * CylinderFaces));
+  drawCalls++;
   drawMetamers(metamer->axillary);
   drawMetamers(metamer->terminal);
 }
@@ -199,8 +234,8 @@ void OpenGlWindow::setBoundingBox(BoundingBox box) {
 }
 
 void OpenGlWindow::drawTree(const Environment &environment, const Tree &tree) {
-  const auto cameraPosition = glm::vec3(0.0f, 1.0f, 10.0f);
-  const auto lookAtPosition = glm::vec3(0.0f, 1.0f, 0.0f);
+  const auto cameraPosition = glm::vec3(0.0f, 0.125f, 0.5f);
+  const auto lookAtPosition = glm::vec3(0.0f, 0.0f, 0.0f);
   const auto viewMatrix = glm::lookAt(cameraPosition, lookAtPosition, glm::vec3(0.0f, 1.0f, 0.0f));
   const auto fov = 2.0f * std::atan(1.0f);
   const auto ratio = 1.0f;
@@ -228,9 +263,11 @@ void OpenGlWindow::startDrawing() {
   glfwGetFramebufferSize(window, &width, &height);
   glViewport(0, 0, width, height);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  drawCalls = 0;
 }
 
 void OpenGlWindow::swapBuffers() {
+  std::cout << "Draw calls: " << drawCalls << '\n';
   glfwSwapBuffers(window);
 }
 

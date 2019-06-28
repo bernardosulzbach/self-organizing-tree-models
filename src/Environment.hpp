@@ -10,8 +10,8 @@ public:
   static constexpr auto MetamerLength = 0.02;
   static constexpr auto OccupancyRadius = 2 * MetamerLength;
   static constexpr auto PerceptionRadius = 4 * MetamerLength;
-  // Angle of 90 degrees.
-  static constexpr auto PerceptionAngle = 2.0 * std::atan(1.0);
+  // About 85 degrees.
+  static constexpr auto PerceptionAngle = 1.5;
 
-  MarkerSet markerSet{2.0f, 8, 8 * 8 * 8 * 8};
+  MarkerSet markerSet{2.0f, 8, 64 * 8 * 8 * 8};
 };

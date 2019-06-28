@@ -5,10 +5,12 @@
 #include "Environment.hpp"
 #include "Metamer.hpp"
 #include "Point.hpp"
+#include "Types.hpp"
 
 class Tree {
 public:
   std::unique_ptr<Metamer> root;
+  Environment &environment;
 
   Tree(Environment &environment, Point seedlingPosition);
 
@@ -22,4 +24,13 @@ public:
    * 5. Update internode width for all internodes.
    */
   void performGrowthIteration();
+
+  U64 countMetamers() const;
+
+private:
+  std::unique_ptr<Metamer> attemptGrowth(Point origin, Vector direction);
+
+  void performGrowthIteration(std::unique_ptr<Metamer> &metamer);
+
+  void updateInternodeWidths(std::unique_ptr<Metamer> &metamer);
 };

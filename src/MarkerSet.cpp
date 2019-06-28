@@ -1,7 +1,9 @@
 #include "MarkerSet.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 
+#include "PointAverage.hpp"
 #include "Random.hpp"
 
 MarkerSet::MarkerSet(float sideLength, U64 resolution, U64 pointCount)
@@ -43,9 +45,39 @@ MarkerSet::MarkerSet(float sideLength, U64 resolution, U64 pointCount)
 }
 
 void MarkerSet::removeSphere(Point center, float radius) {
-  throw std::logic_error("Not implemented.");
+  // TODO: optimize this to skip over vectors which cannot intersect with the sphere.
+  for (auto &xVector : points) {
+    for (auto &xyVector : xVector) {
+      for (auto &xyzVector : xyVector) {
+        const auto predicate = [center, radius](Point &point) { return point.distance(center) < radius; };
+        xyzVector.erase(std::remove_if(std::begin(xyzVector), std::end(xyzVector), predicate), std::end(xyzVector));
+      }
+    }
+  }
 }
 
-SpaceAnalysis MarkerSet::analyze(Point origin, Vector direction, float radius, float length) const {
-  throw std::logic_error("Not implemented.");
+SpaceAnalysis MarkerSet::analyze(Point origin, Vector direction, float theta, float r) const {
+  // TODO: optimize this to skip over vectors which cannot intersect with the sphere.
+  PointAverage pointAverage;
+  for (auto &xVector : points) {
+    for (auto &xyVector : xVector) {
+      for (auto &xyzVector : xyVector) {
+        for (auto &point : xyzVector) {
+          // Is within the distance?
+          if (point.distance(origin) < r) {
+            // Is within angle?
+            if (Vector(origin, point).angleBetween(direction) < theta) {
+              pointAverage.update(point);
+            }
+          }
+        }
+      }
+    }
+  }
+  SpaceAnalysis spaceAnalysis;
+  if (pointAverage.count != 0.0f) {
+    spaceAnalysis.q = 1.0f;
+    spaceAnalysis.v = Vector(origin, pointAverage.average).normalize();
+  }
+  return spaceAnalysis;
 }

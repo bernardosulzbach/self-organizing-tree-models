@@ -12,12 +12,18 @@ int main() {
   Environment environment;
   Tree tree(environment, Point{});
   OpenGlWindow openGlWindow;
+  uint32_t growthIterationsRemaining = 64;
   while (!openGlWindow.shouldClose()) {
     openGlWindow.startDrawing();
     openGlWindow.drawTree(environment, tree);
+    if (growthIterationsRemaining > 0) {
+      tree.performGrowthIteration();
+      growthIterationsRemaining--;
+    }
     openGlWindow.swapBuffers();
     openGlWindow.pollEvents();
   }
+  std::cout << "Metamers: " << tree.countMetamers() << '\n';
   glfwTerminate();
   return 0;
 }

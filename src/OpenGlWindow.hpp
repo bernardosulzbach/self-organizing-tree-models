@@ -7,6 +7,7 @@
 #include "BoundingBox.hpp"
 #include "Color.hpp"
 #include "Tree.hpp"
+#include "Types.hpp"
 
 class OpenGlWindow {
   GLFWwindow *window = nullptr;
@@ -19,6 +20,8 @@ class OpenGlWindow {
   GLuint openGlCylinderProgramViewMatrixUniformLocation = -1;
 
   BoundingBox boundingBox;
+
+  U64 drawCalls = 0;
 
   void initializePrograms();
 

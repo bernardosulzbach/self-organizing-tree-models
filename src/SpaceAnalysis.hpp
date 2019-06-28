@@ -5,5 +5,5 @@
 class SpaceAnalysis {
 public:
   float q{};
-  Vector v;
+  Vector v{};
 };

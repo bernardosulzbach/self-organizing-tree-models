@@ -20,5 +20,5 @@ public:
 
   void removeSphere(Point center, float radius);
 
-  SpaceAnalysis analyze(Point origin, Vector direction, float radius, float length) const;
+  SpaceAnalysis analyze(Point origin, Vector direction, float theta, float r) const;
 };

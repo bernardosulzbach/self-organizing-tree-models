@@ -13,6 +13,6 @@ in vec3 vertexPosition;
 out vec4 fragmentColor;
 
 void main(void) {
-  gl_Position = projectionMatrix*viewMatrix*modelMatrix * vec4(vertexPosition, 1.0);
+  gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
   fragmentColor = vertexColor;
 }
