@@ -20,6 +20,8 @@ add_executable(self-organizing-tree-models
                src/Application.cpp
                src/BoundingBox.cpp
                src/BoundingBox.hpp
+               src/Random.cpp
+               src/Random.hpp
                src/Point.cpp
                src/Point.hpp
                src/Tree.cpp

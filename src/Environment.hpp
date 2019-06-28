@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "MarkerSet.hpp"
+
 class Environment {
 public:
   // Everything is in meters, so this is 2 cm.
@@ -10,4 +12,6 @@ public:
   static constexpr auto PerceptionRadius = 4 * MetamerLength;
   // Angle of 90 degrees.
   static constexpr auto PerceptionAngle = 2.0 * std::atan(1.0);
+
+  MarkerSet markerSet{2.0f, 8, 8 * 8 * 8 * 8};
 };

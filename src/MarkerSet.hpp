@@ -14,7 +14,7 @@ public:
   Range yRange;
   Range zRange;
 
-  std::vector<std::vector<std::vector<Point>>> points;
+  std::vector<std::vector<std::vector<std::vector<Point>>>> points;
 
   MarkerSet(float sideLength, U64 resolution, U64 pointCount);
 
