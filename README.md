@@ -6,6 +6,8 @@ Prusinkiewicz. 2009. Self-organizing tree models for image synthesis. In ACM
 SIGGRAPH 2009 papers (SIGGRAPH '09), Hugues Hoppe (Ed.). ACM, New York, NY,
 USA, Article 58](https://doi.org/10.1145/1576246.1531364).
 
+The code is fairly well-documented in order to help an interested reader better understand how the paper was implemented.
+
 ## Paper overview
 
 The paper is based on the assumption that the form of a developing tree emerges
@@ -18,15 +20,16 @@ regulation of this competition through an internal signaling mechanism.
 
 ### Overall structure
 
-0. Seedling structure
+Starting with a seedling (a single metamer, in this implementation), execute the following loop.
 
-0. Calculate local environment of buds
-0. Determine bud fate
-0. Append new shoots
-0. Shed branches
-0. Update branch width
+    While the tree should grow
+        Calculate local environment of buds
+        Determine bud fate
+        Append new shoots (sequences of metamers)
+        Shed branches
+        Update branch width
 
-0. Grown tree
+And you will end up with a grown tree.
 
 ### Terminology
 
@@ -40,7 +43,7 @@ A bud may have four different fates.
 + Produce a new metamer;
 + Produce a flower;
 + Remain dormant;
-+ Abort;
++ Abort.
 
 Endogenous information flow may be _acropetal_ (from the base of the tree
 towards its extremities), _basipetal_ (from the extremities to the base) or
