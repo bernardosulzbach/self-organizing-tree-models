@@ -13,5 +13,7 @@ public:
   // About 85 degrees.
   static constexpr auto PerceptionAngle = 1.5;
 
-  MarkerSet markerSet{2.0f, 8, 64 * 8 * 8 * 8};
+  MarkerSet markerSet;
+
+  explicit Environment(const MarkerSet &markerSet);
 };

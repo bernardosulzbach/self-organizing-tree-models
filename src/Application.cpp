@@ -9,16 +9,15 @@ int main() {
     std::cerr << "Failed to initialize GLFW." << '\n';
     return 1;
   }
-  Environment environment;
+  MarkerSet markerSet(2.0f, 10, 1000 * 1000);
+  Environment environment(markerSet);
   Tree tree(environment, Point{});
   OpenGlWindow openGlWindow;
-  uint32_t growthIterationsRemaining = 512;
   while (!openGlWindow.shouldClose()) {
     openGlWindow.startDrawing();
     openGlWindow.drawTree(environment, tree);
-    if (growthIterationsRemaining > 0) {
+    if (tree.countMetamers() < 100 * 1000) {
       tree.performGrowthIteration();
-      growthIterationsRemaining--;
     }
     openGlWindow.swapBuffers();
     openGlWindow.pollEvents();
