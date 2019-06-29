@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+static constexpr float PipeModelExponent = 2.5f;
+static constexpr float PipeModelLeafValue = 1.0e-8f;
+
 Tree::Tree(Environment &environment, Point seedlingPosition) : environment(environment) {
   const auto end = seedlingPosition.translate(0.0f, Environment::MetamerLength, 0.0f);
   root = std::make_unique<Metamer>(seedlingPosition, end);
@@ -58,6 +61,20 @@ void Tree::performGrowthIteration(std::unique_ptr<Metamer> &metamer) {
 }
 
 void Tree::updateInternodeWidths(std::unique_ptr<Metamer> &metamer) {
+  if (!metamer) {
+    return;
+  }
+  updateInternodeWidths(metamer->axillary);
+  // Assume all branches have a leaf.
+  auto total = PipeModelLeafValue;
+  if (metamer->axillary) {
+    total += std::pow(metamer->axillary->width, PipeModelExponent);
+  }
+  updateInternodeWidths(metamer->terminal);
+  if (metamer->terminal) {
+    total += std::pow(metamer->terminal->width, PipeModelExponent);
+  }
+  metamer->width = std::pow(total, 1.0f / PipeModelExponent);
 }
 
 U64 Tree::countMetamers() const {
