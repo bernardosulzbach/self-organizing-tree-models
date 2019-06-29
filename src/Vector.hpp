@@ -20,6 +20,8 @@ public:
 
   Vector scale(float factor) const;
 
+  Vector add(Vector vector) const;
+
   float dot(Vector vector) const;
 
   float angleBetween(Vector vector) const;

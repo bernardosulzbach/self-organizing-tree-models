@@ -59,7 +59,8 @@ void MarkerSet::removeSphere(Point center, float radius) {
 }
 
 SpaceAnalysis MarkerSet::analyze(Point origin, Vector direction, float theta, float r) const {
-  PointAverage pointAverage;
+  Vector vectorSum{};
+  auto foundMarker = false;
   const auto ranges = getRangesForSphere(origin, r);
   for (auto x = ranges.minX; x < ranges.maxX; x++) {
     for (auto y = ranges.minY; y < ranges.maxY; y++) {
@@ -69,7 +70,8 @@ SpaceAnalysis MarkerSet::analyze(Point origin, Vector direction, float theta, fl
           if (point.distance(origin) < r) {
             // Is within angle?
             if (Vector(origin, point).angleBetween(direction) < theta) {
-              pointAverage.update(point);
+              foundMarker = true;
+              vectorSum = vectorSum.add(Vector(origin, point).normalize());
             }
           }
         }
@@ -77,9 +79,9 @@ SpaceAnalysis MarkerSet::analyze(Point origin, Vector direction, float theta, fl
     }
   }
   SpaceAnalysis spaceAnalysis{};
-  if (pointAverage.count != 0.0f) {
+  if (foundMarker) {
     spaceAnalysis.q = 1.0f;
-    spaceAnalysis.v = Vector(origin, pointAverage.average).normalize();
+    spaceAnalysis.v = vectorSum.normalize();
   }
   return spaceAnalysis;
 }

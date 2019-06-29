@@ -20,6 +20,10 @@ Vector Vector::scale(float factor) const {
   return {x * factor, y * factor, z * factor};
 }
 
+Vector Vector::add(Vector other) const {
+  return Vector(x + other.x, y + other.y, z + other.z);
+}
+
 float Vector::dot(Vector other) const {
   return x * other.x + y * other.y + z * other.z;
 }

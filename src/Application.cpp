@@ -12,7 +12,7 @@ int main() {
   Environment environment;
   Tree tree(environment, Point{});
   OpenGlWindow openGlWindow;
-  uint32_t growthIterationsRemaining = 64;
+  uint32_t growthIterationsRemaining = 512;
   while (!openGlWindow.shouldClose()) {
     openGlWindow.startDrawing();
     openGlWindow.drawTree(environment, tree);
