@@ -248,7 +248,8 @@ void OpenGlWindow::drawTree(const Environment &environment, const Tree &tree) {
   glUniformMatrix4fv(openGlCylinderProgramViewMatrixUniformLocation, 1, GL_FALSE, viewPointer);
   const auto projectionPointer = glm::value_ptr(projectionMatrix);
   glUniformMatrix4fv(openGlCylinderProgramProjectionMatrixUniformLocation, 1, GL_FALSE, projectionPointer);
-  const Color color{0.6f, 0.6f, 0.6f};
+  // Olive Wood
+  const Color color{0.4588f, 0.3843f, 0.2667f};
   glUniform4fv(openGlCylinderProgramVertexColorUniformLocation, 1, color.channels.data());
   drawMetamers(tree.root);
 }
