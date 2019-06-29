@@ -234,8 +234,8 @@ void OpenGlWindow::setBoundingBox(BoundingBox box) {
 }
 
 void OpenGlWindow::drawTree(const Environment &environment, const Tree &tree) {
-  const auto cameraPosition = glm::vec3(0.0f, 0.125f, 0.5f);
-  const auto lookAtPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+  const auto cameraPosition = glm::vec3(0.0f, 0.25f, 0.75f);
+  const auto lookAtPosition = glm::vec3(0.0f, 0.25f, 0.0f);
   const auto viewMatrix = glm::lookAt(cameraPosition, lookAtPosition, glm::vec3(0.0f, 1.0f, 0.0f));
   const auto fov = 2.0f * std::atan(1.0f);
   const auto ratio = 1.0f;
