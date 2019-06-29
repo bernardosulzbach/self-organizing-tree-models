@@ -1,0 +1,159 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[parfill]{parskip}
+\usepackage[margin=2cm]{geometry}
+\usepackage{sectsty}
+\usepackage{hyperref}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{csquotes}
+\usepackage[
+    backend=biber,
+    style=ieee,
+    sorting=none
+]{biblatex}
+\addbibresource{bibliography.bib}
+
+\colorlet{mycitecolor}{YellowOrange}
+\colorlet{myurlcolor}{Aquamarine}
+
+\hypersetup{
+  colorlinks = true,
+  citecolor = BrickRed,
+  urlcolor = ForestGreen
+}
+
+\title{Self-organizing tree models}
+\author{Bernardo Sulzbach}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Paper overview}
+
+This is a C++ implementation of the main ideas from \cite{Palubicki2009}.
+
+The code is fairly well-documented in order to help an interested reader better understand how the paper was implemented.
+
+\section{Paper overview}
+
+The paper is based on the assumption that the form of a developing tree emerges from a self-organizing process dominated by the competition of buds and branches for light or space, and regulated by internal signaling mechanisms.
+
+The method integrates three elements of tree development: local control of branching geometry, competition of buds and branches for space or light, and regulation of this competition through an internal signaling mechanism.
+
+\subsection{Overall structure}
+
+Starting with a seedling (just a single metamer in this implementation), the following outline is a simulation step.
+
+\begin{enumerate}
+\item Calculate local environment of buds
+\item Determine bud fate
+\item Append new shoots (sequences of metamers)
+\item Shed branches
+\item Update branch width
+\end{enumerate}
+
+\subsection{Terminology}
+
+The point at which one or more leaves are or were attached to a stem is a \textbf{node}.
+The part of the stem between two nodes is an \textbf{internode}.
+A \textbf{lateral bud} is created in the axil of each leaf.
+An internode with attached leaf and bud forms a \textbf{metamer}.
+
+A bud may have four different fates: produce a new metamer, produce a flower, remain dormant, or abort.
+In this implementation, flowering has not been implemented.
+
+Endogenous information flow may be \textit{acropetal} (from the base of the tree towards its extremities), \textit{basipetal} (from the extremities to the base) or bidirectional.
+
+\section{Calculation of the environmental input}
+
+There are two methods for doing this assessment: \textbf{space colonization} and \textbf{shadow propagation}.
+
+\subsection{Space colonization}
+
+In each iteration, the process estimates the availability or quality of the space surrounding each bud (a number \(Q\)), and the optimal direction of shoot growth (a vector \(\vec{V}\)).
+
+Each bud is surrounded by a spherical occupancy zone of radius \(\rho\) and has a conical perception volume characterized by the perception angle \(\theta\) and the distance \(r\).
+
+Typical values are \(\theta \approx \frac{\pi}{2}\), \(\rho\) = 2 internode lengths, and \(r\) = 4 to 6 internode lengths.
+
+The space available for tree growth is represented by a set \(S\) of marker points.
+According to \cite[p. 3]{Palubicki2009}, these points may be generated algorithmically, with uniform distribution, at the beginning of the simulation, when user interaction is not required.
+
+In each iteration, markers within the occupancy zone of any bud are deleted from the set.
+
+The buds then compete for the remaining points.
+
+A marker within the perception volume of a single bud is associated with this bud. A marker within the perception volume of several buds is associated with the closest of these buds.
+
+A bud A has space for growth (and \(Q\) = 1) if the set S(A) of markers associated with A is nonempty. Otherwise, bud A has no available space (and \(Q\) = 0).
+
+The optimal growth direction \(\vec{V}\) is calculated as the normalized sum of the normalized vectors towards all markers in S(A).
+
+\subsection{Shadow propagation}
+
+Shadow propagation was not implemented, as only one method is used in a single simulation.
+
+\section{Calculation of bud fate}
+
+In this phase the environmental input (the availability of free space or light) is used to determine which buds will produce new shoots and how large they will be.
+
+This can be done through the \textbf{extended Borchert-Honda model} and the \textbf{priority model}.
+
+\subsection{Extended Borchert-Honda model}
+
+The authors extended the Borchert-Honda model (which was a purely endogenous mechanism that regulates the extent of branching by controlling the distribution of a growth-inducing resource to buds) to use the amount of light received by the buds to guide the distribution.
+
+In the first pass of the model, information about the amount of light \(Q\) that reaches the buds flows basipetally, and its cumulative values are stored within the internodes.
+
+There is a coefficient of proportionality \(\alpha\) which determines how much resource will be redistributed in the acropetal pass: \(v = \alpha Q\).
+
+The amount of resource \(v\) reaching a branching point is distributed between the continuing main axis (\(v_m\)) and the lateral branch (\(v_l\)) using the following equations, in which \(\lambda \in [0, 1]\) controls whether the allocation is biased towards the main axis (\(\lambda > 0.5\)) or towards the lateral branch (\(\lambda < 0.5\)).
+
+\[v_m = v \frac{\lambda Q_m}{\lambda Q_m + (1 - \lambda Q_l)}\]
+
+\[v_l = v \frac{(1 - \lambda) Q_l}{\lambda Q_m + (1 - \lambda Q_l)}\]
+
+The number of metamers produced by a bud is given by \(n = \lfloor v \rfloor\).
+
+\subsection{Priority model}
+
+Instead of allocating by considering one branching point at a time as the extended Borchert-Honda model does, the priority model operates at the level of entire axes.
+
+This model was not implemented.
+
+\section{Addition of new shoots}
+
+By default, new shoots are made in the direction pointed to by the buds.
+Terminal buds have the orientation of their supporting internodes and lateral buds have orientation defined by \href{https://en.wikipedia.org/wiki/Phyllotaxis}{phyllotaxis} and the branching angle between the bud and its parent internode.
+
+The orientation of consecutive metamers forming a shoot is modified by two factors: the optimal growth direction determined by the environment (the \(\vec{V}\) vector) and the tropism (the tendency to maintain a preferred orientation with respect to gravity).
+
+Therefore, the actual orientation of a metamer is calculated as a weighted sum of three vectors: the default orientation, the optimal growth direction (with weight \(\xi\)), and a tropism vector (with weight \(\eta\)).
+
+These weights can be changed over time in order to be able to generate a wider range of trees.
+
+\section{Shedding of branches}
+
+We do not perform any type of shedding or pruning. According to \cite{Palubicki2009}, the shedding method proposed by the authors is suitable for models which rely on shadow propagation rather than space colonization, because of the binary nature of the environmental input in the case of space colonization.
+
+\section{Calculation of branch diameter}
+
+The formula used to calculate branch diameter is the same one used in \cite{Palubicki2009}.
+
+\[d = \left({d_1}^n + {d_2}^n\right)^{\frac{1}{n}}\]
+
+Because this implementation does not perform any shedding or pruning, it is not required to retain a memory of past leaves and branches in order to calculate the diameters correctly.
+
+\section{Implementation details}
+
+The code was written using C++17 features, and CMake 3.11 to manage the sources. Only modern Linux compatibility was accounted for.
+
+In order to speed up the implementation of space colonization, I've used uniform space partitioning, as it was done in \cite{Palubicki2009}.
+
+According to \cite{Palubicki2009}, space colonization was about three times slower than shadow propagation, while the extended Borchert-Honda model and the priority model had similar performance.
+
+\printbibliography
+
+\end{document}

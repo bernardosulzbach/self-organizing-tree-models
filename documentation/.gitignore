@@ -1,0 +1,10 @@
+**/.idea
+
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.pdf
+*.bcf
+*.run.xml
