@@ -166,6 +166,7 @@ static glm::mat4 getAlignmentMatrix(Vector a, Vector b) {
   a = a.normalize();
   b = b.normalize();
   const auto c = a.dot(b);
+  // If the vector is almost aligned or reversed, do nothing.
   if (std::abs(c) > (1.0f - 1.0e-6f)) {
     return glm::mat4(1.0f);
   }
@@ -186,7 +187,6 @@ glm::mat4 modelMatrixFromMetamer(const std::unique_ptr<Metamer> &metamer) {
   const auto yScale = Environment::MetamerLength / 2.0f;
   const auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(metamer->width, yScale, metamer->width));
   // Rotate it so that the orientation is correct.
-  // TODO: align these vectors
   const auto rotation = getAlignmentMatrix(Vector(0.0f, 1.0f, 0.0f), Vector(metamer->beginning, metamer->end));
   // Translate it so that the centers match.
   const auto metamerCenter = metamer->getCenter();
