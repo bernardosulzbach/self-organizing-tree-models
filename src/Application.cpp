@@ -16,7 +16,7 @@ int main() {
   while (!openGlWindow.shouldClose()) {
     openGlWindow.startDrawing();
     openGlWindow.drawTree(environment, tree);
-    if (tree.countMetamers() < 100 * 1000) {
+    if (tree.countMetamers() < 5 * 1000) {
       tree.performGrowthIteration();
     }
     openGlWindow.swapBuffers();

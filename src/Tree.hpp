@@ -19,7 +19,7 @@ public:
    *
    * 1. Calculate local environment of all tree buds.
    * 2. Determine the fate of each bud.
-   * 3. Append new shoots (right now, shoots are only one metamer long).
+   * 3. Append new shoots.
    * 4. Shed branches (not implemented).
    * 5. Update internode width for all internodes.
    */
@@ -28,7 +28,9 @@ public:
   U64 countMetamers() const;
 
 private:
-  std::unique_ptr<Metamer> attemptGrowth(Point origin, Vector direction);
+  void allocateMarkers(std::unique_ptr<Metamer> &metamer);
+
+  std::unique_ptr<Metamer> attemptGrowth(BudId budId, Point origin, Vector direction);
 
   void performGrowthIteration(std::unique_ptr<Metamer> &metamer);
 

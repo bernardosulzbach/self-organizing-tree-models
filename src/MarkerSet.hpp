@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "Marker.hpp"
 #include "MarkerSetRanges.hpp"
 #include "Point.hpp"
 #include "Range.hpp"
@@ -17,13 +18,17 @@ public:
 
   U64 resolution;
 
-  std::vector<std::vector<std::vector<std::vector<Point>>>> points;
+  std::vector<std::vector<std::vector<std::vector<Marker>>>> markers;
 
   MarkerSet(float sideLength, U64 resolution, U64 pointCount);
 
-  void removeSphere(Point center, float radius);
+  void resetAllocations();
 
-  SpaceAnalysis analyze(Point origin, Vector direction, float theta, float r) const;
+  void updateAllocatedInCone(BudId budId, Point origin, Vector direction, float theta, float r);
+
+  SpaceAnalysis getAllocatedInCone(BudId budId, Point origin, Vector direction, float theta, float r) const;
+
+  void removeMarkersInSphere(Point center, float radius);
 
 private:
   MarkerSetRanges getRangesForSphere(Point origin, float radius) const;

@@ -51,7 +51,9 @@ add_executable(self-organizing-tree-models
                src/PointAverage.cpp
                src/PointAverage.hpp
                src/MarkerSetRanges.cpp
-               src/MarkerSetRanges.hpp)
+               src/MarkerSetRanges.hpp
+               src/Marker.cpp
+               src/Marker.hpp)
 
 find_package(glm REQUIRED)
 

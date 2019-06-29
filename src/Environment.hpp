@@ -3,8 +3,12 @@
 #include <cmath>
 
 #include "MarkerSet.hpp"
+#include "Types.hpp"
 
 class Environment {
+private:
+  BudId nextBudId = 1;
+
 public:
   // Everything is in meters, so this is 2 cm.
   static constexpr auto MetamerLength = 0.02;
@@ -16,4 +20,6 @@ public:
   MarkerSet markerSet;
 
   explicit Environment(const MarkerSet &markerSet);
+
+  BudId getNextBudId();
 };
