@@ -28,6 +28,7 @@ public:
   U64 countMetamers() const;
 
 private:
+  // TODO: reorder these.
   void allocateMarkers(std::unique_ptr<Metamer> &metamer);
 
   std::unique_ptr<Metamer> attemptGrowth(BudId budId, Point origin, Vector direction);
@@ -35,4 +36,6 @@ private:
   void performGrowthIteration(std::unique_ptr<Metamer> &metamer);
 
   void updateInternodeWidths(std::unique_ptr<Metamer> &metamer);
+
+  void propagateLightBasipetally(std::unique_ptr<Metamer> &metamer);
 };

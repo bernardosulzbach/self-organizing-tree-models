@@ -15,25 +15,14 @@ void Tree::performGrowthIteration() {
   environment.markerSet.resetAllocations();
   allocateMarkers(root);
   // 2. Determine the fate of each bud (the extended Borchert-Honda model).
-  // TODO.
+  propagateLightBasipetally(root);
+  std::cout << "Light in root: " << root->light << '\n';
+  // TODO: propagateGrowthAcropetally(root);
   // 3. Append new shoots.
   performGrowthIteration(root);
   // 4. Shed branches (not implemented).
   // 5. Update internode width for all internodes.
   updateInternodeWidths(root);
-}
-
-std::unique_ptr<Metamer> Tree::attemptGrowth(BudId budId, Point origin, Vector direction) {
-  const auto theta = Environment::PerceptionAngle;
-  const auto r = Environment::PerceptionRadius;
-  const auto analysis = environment.markerSet.getAllocatedInCone(budId, origin, direction, theta, r);
-  if (analysis.q == 1.0f) {
-    const auto shootV = analysis.v.scale(Environment::MetamerLength);
-    const auto shootEnd = origin.translate(shootV.x, shootV.y, shootV.z);
-    environment.markerSet.removeMarkersInSphere(shootEnd, Environment::OccupancyRadius);
-    return std::make_unique<Metamer>(environment, origin, shootEnd);
-  }
-  return nullptr;
 }
 
 void Tree::allocateMarkers(std::unique_ptr<Metamer> &metamer) {
@@ -55,6 +44,45 @@ void Tree::allocateMarkers(std::unique_ptr<Metamer> &metamer) {
   } else {
     allocateMarkers(metamer->terminal);
   }
+}
+
+void Tree::propagateLightBasipetally(std::unique_ptr<Metamer> &metamer) {
+  if (!metamer) {
+    return;
+  }
+  propagateLightBasipetally(metamer->axillary);
+  propagateLightBasipetally(metamer->terminal);
+  const auto theta = Environment::PerceptionAngle;
+  const auto r = Environment::PerceptionRadius;
+  metamer->light = 0.0f;
+  if (!metamer->axillary) {
+    // TODO: change this point and direction somehow. This has to use the phyllotaxis thing.
+    const auto direction = Vector(metamer->beginning, metamer->end);
+    const auto budId = metamer->axillaryId;
+    metamer->light += environment.markerSet.getAllocatedInCone(budId, metamer->end, direction, theta, r).q;
+  } else {
+    metamer->light += metamer->axillary->light;
+  }
+  if (!metamer->terminal) {
+    const auto direction = Vector(metamer->beginning, metamer->end);
+    const auto budId = metamer->terminalId;
+    metamer->light += environment.markerSet.getAllocatedInCone(budId, metamer->end, direction, theta, r).q;
+  } else {
+    metamer->light += metamer->terminal->light;
+  }
+}
+
+std::unique_ptr<Metamer> Tree::attemptGrowth(BudId budId, Point origin, Vector direction) {
+  const auto theta = Environment::PerceptionAngle;
+  const auto r = Environment::PerceptionRadius;
+  const auto analysis = environment.markerSet.getAllocatedInCone(budId, origin, direction, theta, r);
+  if (analysis.q == 1.0f) {
+    const auto shootV = analysis.v.scale(Environment::MetamerLength);
+    const auto shootEnd = origin.translate(shootV.x, shootV.y, shootV.z);
+    environment.markerSet.removeMarkersInSphere(shootEnd, Environment::OccupancyRadius);
+    return std::make_unique<Metamer>(environment, origin, shootEnd);
+  }
+  return nullptr;
 }
 
 void Tree::performGrowthIteration(std::unique_ptr<Metamer> &metamer) {

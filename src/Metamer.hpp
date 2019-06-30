@@ -22,6 +22,8 @@ public:
   std::unique_ptr<Metamer> terminal;
   BudId terminalId{};
 
+  float light = 0.0f;
+
   Metamer(Environment &environment, const Point &beginning, const Point &end);
 
   Point getCenter() const;
