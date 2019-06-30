@@ -271,9 +271,9 @@ void OpenGlWindow::drawTree(const Environment &environment, const Tree &tree) {
   const auto viewMatrix = glm::lookAt(glmCameraPosition, lookAtPosition, glm::vec3(0.0f, 1.0f, 0.0f));
   const auto fov = 2.0f * std::atan(1.0f);
   const auto ratio = 1.0f;
-  const auto ZNear = 0.1f;
+  const auto zNear = 0.1f;
   const auto zFar = 100.0f;
-  const auto projectionMatrix = glm::perspective(fov, ratio, ZNear, zFar);
+  const auto projectionMatrix = glm::perspective(fov, ratio, zNear, zFar);
   glUseProgram(openGlCylinderProgram);
   glBindVertexArray(openGlCylinderVertexBufferArray);
   const auto viewPointer = glm::value_ptr(viewMatrix);
