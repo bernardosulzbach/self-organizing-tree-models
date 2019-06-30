@@ -16,6 +16,25 @@ constexpr uint32_t CylinderFaces = 16;
 constexpr uint32_t DefaultWindowSide = 800;
 constexpr uint32_t MultiSamplingSamples = 4;
 
+static UserAction getUserActionFromKey(int key) {
+  switch (key) {
+  case GLFW_KEY_W:
+    return UserAction::MoveCloser;
+  case GLFW_KEY_S:
+    return UserAction::MoveAway;
+  default:
+    return UserAction::None;
+  }
+}
+
+static std::array<bool, static_cast<U32>(UserAction::Count)> userActions;
+
+void keyCallback(GLFWwindow *, int key, int, int action, int) {
+  if (action == GLFW_PRESS || action == GLFW_RELEASE) {
+    userActions[userActionToIndex(getUserActionFromKey(key))] = (action == GLFW_PRESS);
+  }
+}
+
 static void testCompilation(const std::string &filename, GLuint shader) {
   GLint isCompiled = GL_FALSE;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
@@ -212,12 +231,11 @@ OpenGlWindow::OpenGlWindow() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_SAMPLES, MultiSamplingSamples);
   window = glfwCreateWindow(DefaultWindowSide, DefaultWindowSide, "OpenGL Window", nullptr, nullptr);
+  glfwSetKeyCallback(window, keyCallback);
   glfwMakeContextCurrent(window);
   gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
   glfwSwapInterval(1);
   glEnable(GL_MULTISAMPLE);
-  // glEnable(GL_CULL_FACE);
-  // glCullFace(GL_BACK);
   if (window == nullptr) {
     throw std::runtime_error("Failed to create the OpenGL window.");
   }
@@ -229,14 +247,10 @@ OpenGlWindow::~OpenGlWindow() {
   glfwDestroyWindow(window);
 }
 
-void OpenGlWindow::setBoundingBox(BoundingBox box) {
-  boundingBox = box;
-}
-
 void OpenGlWindow::drawTree(const Environment &environment, const Tree &tree) {
-  const auto cameraPosition = glm::vec3(0.0f, 0.25f, 0.75f);
+  const auto glmCameraPosition = glm::vec3(cameraPosition.x, cameraPosition.y, cameraPosition.z);
   const auto lookAtPosition = glm::vec3(0.0f, 0.25f, 0.0f);
-  const auto viewMatrix = glm::lookAt(cameraPosition, lookAtPosition, glm::vec3(0.0f, 1.0f, 0.0f));
+  const auto viewMatrix = glm::lookAt(glmCameraPosition, lookAtPosition, glm::vec3(0.0f, 1.0f, 0.0f));
   const auto fov = 2.0f * std::atan(1.0f);
   const auto ratio = 1.0f;
   const auto ZNear = 0.1f;
@@ -258,12 +272,32 @@ bool OpenGlWindow::shouldClose() {
   return glfwWindowShouldClose(window);
 }
 
+void OpenGlWindow::updateCameraPosition() {
+  const auto currentTime = std::chrono::steady_clock::now();
+  const std::chrono::duration<float> seconds = currentTime - lastUpdate;
+  auto newCameraPosition = cameraPosition;
+  const auto approximationFactor = std::pow(2.0f, seconds.count());
+  if (userActions[userActionToIndex(UserAction::MoveCloser)]) {
+    Vector vector(cameraPosition, Point(0.0f, 0.0f, 0.0f));
+    vector = vector.scale((approximationFactor - 1.0f) / approximationFactor);
+    newCameraPosition = newCameraPosition.translate(vector.x, vector.y, vector.z);
+  }
+  if (userActions[userActionToIndex(UserAction::MoveAway)]) {
+    Vector vector(Point(0.0f, 0.0f, 0.0f), cameraPosition);
+    vector = vector.scale(approximationFactor - 1.0f);
+    newCameraPosition = newCameraPosition.translate(vector.x, vector.y, vector.z);
+  }
+  lastUpdate = currentTime;
+  cameraPosition = newCameraPosition;
+}
+
 void OpenGlWindow::startDrawing() {
   int width;
   int height;
   glfwGetFramebufferSize(window, &width, &height);
   glViewport(0, 0, width, height);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  updateCameraPosition();
   drawCalls = 0;
 }
 

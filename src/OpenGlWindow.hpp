@@ -4,10 +4,13 @@
 
 #include <GLFW/glfw3.h>
 
+#include <chrono>
+
 #include "BoundingBox.hpp"
 #include "Color.hpp"
 #include "Tree.hpp"
 #include "Types.hpp"
+#include "UserAction.hpp"
 
 class OpenGlWindow {
   GLFWwindow *window = nullptr;
@@ -19,9 +22,11 @@ class OpenGlWindow {
   GLuint openGlCylinderProgramProjectionMatrixUniformLocation = -1;
   GLuint openGlCylinderProgramViewMatrixUniformLocation = -1;
 
-  BoundingBox boundingBox;
-
   U64 drawCalls = 0;
+
+  std::chrono::steady_clock::time_point lastUpdate = std::chrono::steady_clock::now();
+
+  Point cameraPosition{0.0f, 0.25f, 1.0f};
 
   void initializePrograms();
 
@@ -29,12 +34,12 @@ class OpenGlWindow {
 
   void drawMetamers(const std::unique_ptr<Metamer> &metamer);
 
+  void updateCameraPosition();
+
 public:
   OpenGlWindow();
 
   virtual ~OpenGlWindow();
-
-  void setBoundingBox(BoundingBox box);
 
   void drawTree(const Environment &environment, const Tree &tree);
 
