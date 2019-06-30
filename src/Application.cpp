@@ -18,6 +18,8 @@ int main() {
     openGlWindow.drawTree(environment, tree);
     if (tree.countMetamers() < 5 * 1000) {
       tree.performGrowthIteration();
+    } else {
+      // openGlWindow.setShouldClose();
     }
     openGlWindow.swapBuffers();
     openGlWindow.pollEvents();

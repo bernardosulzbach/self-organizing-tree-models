@@ -18,15 +18,21 @@ class OpenGlWindow {
   GLuint openGlCylinderProgram = -1;
   GLuint openGlCylinderVertexBufferArray = -1;
   GLuint openGlCylinderProgramVertexColorUniformLocation = -1;
+
   GLuint openGlCylinderProgramModelMatrixUniformLocation = -1;
-  GLuint openGlCylinderProgramProjectionMatrixUniformLocation = -1;
+  GLuint openGlCylinderProgramModelInverseTransposedMatrixUniformLocation = -1;
   GLuint openGlCylinderProgramViewMatrixUniformLocation = -1;
+  GLuint openGlCylinderProgramProjectionMatrixUniformLocation = -1;
+
+  GLuint openGlCylinderProgramCameraPositionInWorldUniformLocation = -1;
+  GLuint openGlCylinderProgramLightPositionInWorldUniformLocation = -1;
+  GLuint openGlCylinderProgramAmbientLightIntensityUniformLocation = -1;
 
   U64 drawCalls = 0;
 
   std::chrono::steady_clock::time_point lastUpdate = std::chrono::steady_clock::now();
 
-  Point cameraPosition{0.0f, 0.25f, 1.0f};
+  Point cameraPosition{0.0f, 0.5f, 1.0f};
 
   void initializePrograms();
 
@@ -42,6 +48,8 @@ public:
   virtual ~OpenGlWindow();
 
   void drawTree(const Environment &environment, const Tree &tree);
+
+  void setShouldClose();
 
   bool shouldClose();
 

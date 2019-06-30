@@ -8,8 +8,7 @@
 #include "Random.hpp"
 
 MarkerSet::MarkerSet(float sideLength, U64 resolution, U64 pointCount)
-    : xRange(-0.5f * sideLength, +0.5 * sideLength), yRange(0.0f, sideLength),
-      zRange(-0.5f * sideLength, +0.5 * sideLength), resolution(resolution) {
+    : xRange(-0.5f * sideLength, +0.5 * sideLength), yRange(0.0f, sideLength), zRange(-0.5f * sideLength, +0.5 * sideLength), resolution(resolution) {
   if (sideLength <= 0.0f) {
     throw std::domain_error("Side length cannot be <= 0.0f.");
   }

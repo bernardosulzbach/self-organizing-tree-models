@@ -106,52 +106,62 @@ void OpenGlWindow::initializePrograms() {
   openGlCylinderProgramVertexColorUniformLocation = vertexColorUniform;
   const auto modelUniform = glGetUniformLocation(openGlCylinderProgram, "modelMatrix");
   openGlCylinderProgramModelMatrixUniformLocation = modelUniform;
+  const auto modelInverseTransposedUniform = glGetUniformLocation(openGlCylinderProgram, "modelInverseTransposedMatrix");
+  openGlCylinderProgramModelInverseTransposedMatrixUniformLocation = modelInverseTransposedUniform;
   const auto viewUniform = glGetUniformLocation(openGlCylinderProgram, "viewMatrix");
   openGlCylinderProgramViewMatrixUniformLocation = viewUniform;
   const auto projectionUniform = glGetUniformLocation(openGlCylinderProgram, "projectionMatrix");
   openGlCylinderProgramProjectionMatrixUniformLocation = projectionUniform;
+  const auto cameraPositionUniform = glGetUniformLocation(openGlCylinderProgram, "cameraPositionInWorld");
+  openGlCylinderProgramCameraPositionInWorldUniformLocation = cameraPositionUniform;
+  const auto lightPositionUniform = glGetUniformLocation(openGlCylinderProgram, "lightPositionInWorld");
+  openGlCylinderProgramLightPositionInWorldUniformLocation = lightPositionUniform;
+  const auto ambientLightIntensityUniform = glGetUniformLocation(openGlCylinderProgram, "ambientLightIntensity");
+  openGlCylinderProgramAmbientLightIntensityUniformLocation = ambientLightIntensityUniform;
 }
 
-static void addDiskVertices(std::vector<float> &diskVertices, float y) {
+static void pushBackValues(std::vector<float> &values, float x, float y, float z) {
+  values.push_back(x);
+  values.push_back(y);
+  values.push_back(z);
+}
+
+static void addDiskVertices(std::vector<float> &values, float y, float ny) {
   for (uint32_t i = 0; i < CylinderFaces; i++) {
-    diskVertices.push_back(0.0f);
-    diskVertices.push_back(y);
-    diskVertices.push_back(0.0f);
+    pushBackValues(values, 0.0f, y, 0.0f);
+    pushBackValues(values, 0.0f, ny, 0.0f);
     const auto thetaA = 2.0f * 4.0f * std::atan(1.0f) / CylinderFaces * i;
-    diskVertices.push_back(std::cos(thetaA));
-    diskVertices.push_back(y);
-    diskVertices.push_back(std::sin(thetaA));
+    pushBackValues(values, std::cos(thetaA), y, std::sin(thetaA));
+    pushBackValues(values, 0.0f, ny, 0.0f);
     const auto thetaB = 2.0f * 4.0f * std::atan(1.0f) / CylinderFaces * (i + 1);
-    diskVertices.push_back(std::cos(thetaB));
-    diskVertices.push_back(y);
-    diskVertices.push_back(std::sin(thetaB));
+    pushBackValues(values, std::cos(thetaB), y, std::sin(thetaB));
+    pushBackValues(values, 0.0f, ny, 0.0f);
   }
 }
 
-static void addSideVertices(std::vector<float> &diskVertices) {
+static void addSideFaces(std::vector<float> &values, const float thetaA, const float thetaB) {
+  // Add the first triangle.
+  pushBackValues(values, std::cos(thetaA), -1.0f, std::sin(thetaA));
+  pushBackValues(values, std::cos(thetaA), 0.0f, std::sin(thetaA));
+  pushBackValues(values, std::cos(thetaB), -1.0f, std::sin(thetaB));
+  pushBackValues(values, std::cos(thetaB), 0.0f, std::sin(thetaB));
+  pushBackValues(values, std::cos(thetaB), 1.0f, std::sin(thetaB));
+  pushBackValues(values, std::cos(thetaB), 0.0f, std::sin(thetaB));
+  // Add the second triangle.
+  pushBackValues(values, std::cos(thetaB), 1.0f, std::sin(thetaB));
+  pushBackValues(values, std::cos(thetaB), 0.0f, std::sin(thetaB));
+  pushBackValues(values, std::cos(thetaA), 1.0f, std::sin(thetaA));
+  pushBackValues(values, std::cos(thetaA), 0.0f, std::sin(thetaA));
+  pushBackValues(values, std::cos(thetaA), -1.0f, std::sin(thetaA));
+  pushBackValues(values, std::cos(thetaA), 0.0f, std::sin(thetaA));
+}
+
+static void addSideVertices(std::vector<float> &values) {
   // Adds two triangles per iteration.
   for (uint32_t i = 0; i < CylinderFaces; i++) {
     const auto thetaA = 2.0f * 4.0f * std::atan(1.0f) / CylinderFaces * i;
-    diskVertices.push_back(std::cos(thetaA));
-    diskVertices.push_back(-1.0f);
-    diskVertices.push_back(std::sin(thetaA));
     const auto thetaB = 2.0f * 4.0f * std::atan(1.0f) / CylinderFaces * (i + 1);
-    diskVertices.push_back(std::cos(thetaB));
-    diskVertices.push_back(-1.0f);
-    diskVertices.push_back(std::sin(thetaB));
-    diskVertices.push_back(std::cos(thetaB));
-    diskVertices.push_back(+1.0f);
-    diskVertices.push_back(std::sin(thetaB));
-
-    diskVertices.push_back(std::cos(thetaB));
-    diskVertices.push_back(+1.0f);
-    diskVertices.push_back(std::sin(thetaB));
-    diskVertices.push_back(std::cos(thetaA));
-    diskVertices.push_back(+1.0f);
-    diskVertices.push_back(std::sin(thetaA));
-    diskVertices.push_back(std::cos(thetaA));
-    diskVertices.push_back(-1.0f);
-    diskVertices.push_back(std::sin(thetaA));
+    addSideFaces(values, thetaA, thetaB);
   }
 }
 
@@ -161,17 +171,23 @@ void OpenGlWindow::setUpVertexArrays() {
   GLuint vertexBuffer;
   glGenBuffers(1, &vertexBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  std::vector<float> cylinderVertices;
-  addDiskVertices(cylinderVertices, -1.0f);
-  addSideVertices(cylinderVertices);
-  addDiskVertices(cylinderVertices, +1.0f);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * cylinderVertices.size(), cylinderVertices.data(), GL_STATIC_DRAW);
+  std::vector<float> cylinderValues;
+  addDiskVertices(cylinderValues, -1.0f, -1.0f);
+  addSideVertices(cylinderValues);
+  addDiskVertices(cylinderValues, +1.0f, +1.0f);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * cylinderValues.size(), cylinderValues.data(), GL_STATIC_DRAW);
   const auto vertexPositionLocation = glGetAttribLocation(openGlCylinderProgram, "vertexPosition");
   if (vertexPositionLocation < 0) {
-    throw std::runtime_error("Could not find an attribute in the OpenGL program.");
+    throw std::runtime_error("Could not find vertexPosition in the OpenGL program.");
   }
-  glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, GL_FALSE, 0, (void *)(0 * sizeof(float)));
+  glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(0 * sizeof(float)));
   glEnableVertexAttribArray(vertexPositionLocation);
+  const auto vertexNormalLocation = glGetAttribLocation(openGlCylinderProgram, "vertexNormal");
+  if (vertexNormalLocation < 0) {
+    throw std::runtime_error("Could not find vertexNormal in the OpenGL program.");
+  }
+  glVertexAttribPointer(vertexNormalLocation, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+  glEnableVertexAttribArray(vertexNormalLocation);
   glBindVertexArray(0);
   glDeleteBuffers(1, &vertexBuffer);
 }
@@ -218,8 +234,10 @@ void OpenGlWindow::drawMetamers(const std::unique_ptr<Metamer> &metamer) {
   if (!metamer) {
     return;
   }
-  const auto transform = modelMatrixFromMetamer(metamer);
-  glUniformMatrix4fv(openGlCylinderProgramModelMatrixUniformLocation, 1, GL_FALSE, glm::value_ptr(transform));
+  const auto modelMatrix = modelMatrixFromMetamer(metamer);
+  glUniformMatrix4fv(openGlCylinderProgramModelMatrixUniformLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+  const auto modelInverseTransposedMatrix = glm::transpose(glm::inverse(modelMatrix));
+  glUniformMatrix4fv(openGlCylinderProgramModelInverseTransposedMatrixUniformLocation, 1, GL_FALSE, glm::value_ptr(modelInverseTransposedMatrix));
   glDrawArrays(GL_TRIANGLES, 0, 3 * (4 * CylinderFaces));
   drawCalls++;
   drawMetamers(metamer->axillary);
@@ -249,7 +267,7 @@ OpenGlWindow::~OpenGlWindow() {
 
 void OpenGlWindow::drawTree(const Environment &environment, const Tree &tree) {
   const auto glmCameraPosition = glm::vec3(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-  const auto lookAtPosition = glm::vec3(0.0f, 0.25f, 0.0f);
+  const auto lookAtPosition = glm::vec3(0.0f, 0.5f, 0.0f);
   const auto viewMatrix = glm::lookAt(glmCameraPosition, lookAtPosition, glm::vec3(0.0f, 1.0f, 0.0f));
   const auto fov = 2.0f * std::atan(1.0f);
   const auto ratio = 1.0f;
@@ -262,10 +280,20 @@ void OpenGlWindow::drawTree(const Environment &environment, const Tree &tree) {
   glUniformMatrix4fv(openGlCylinderProgramViewMatrixUniformLocation, 1, GL_FALSE, viewPointer);
   const auto projectionPointer = glm::value_ptr(projectionMatrix);
   glUniformMatrix4fv(openGlCylinderProgramProjectionMatrixUniformLocation, 1, GL_FALSE, projectionPointer);
+  const auto cameraPositionInWorldPointer = glm::value_ptr(glmCameraPosition);
+  glUniform3fv(openGlCylinderProgramCameraPositionInWorldUniformLocation, 1, cameraPositionInWorldPointer);
+  const auto glmLightPosition = glmCameraPosition + glm::vec3(0.0f, 1.0f, 0.0f);
+  const auto lightPositionInWorldPointer = glm::value_ptr(glmLightPosition);
+  glUniform3fv(openGlCylinderProgramLightPositionInWorldUniformLocation, 1, lightPositionInWorldPointer);
+  glUniform1f(openGlCylinderProgramAmbientLightIntensityUniformLocation, 1.0f);
   // Olive Wood
   const Color color{0.4588f, 0.3843f, 0.2667f};
   glUniform4fv(openGlCylinderProgramVertexColorUniformLocation, 1, color.channels.data());
   drawMetamers(tree.root);
+}
+
+void OpenGlWindow::setShouldClose() {
+  glfwSetWindowShouldClose(window, true);
 }
 
 bool OpenGlWindow::shouldClose() {
