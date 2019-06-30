@@ -24,6 +24,11 @@ public:
 
   float light = 0.0f;
 
+  float growthResource = 0.0f;
+
+  float axillaryGrowthResource = 0.0f;
+  float terminalGrowthResource = 0.0f;
+
   Metamer(Environment &environment, const Point &beginning, const Point &end);
 
   Point getCenter() const;

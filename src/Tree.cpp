@@ -16,8 +16,8 @@ void Tree::performGrowthIteration() {
   allocateMarkers(root);
   // 2. Determine the fate of each bud (the extended Borchert-Honda model).
   propagateLightBasipetally(root);
-  std::cout << "Light in root: " << root->light << '\n';
-  // TODO: propagateGrowthAcropetally(root);
+  root->growthResource = Environment::BorchertHondaAlpha * root->light;
+  propagateGrowthAcropetally(root);
   // 3. Append new shoots.
   performGrowthIteration(root);
   // 4. Shed branches (not implemented).
@@ -70,6 +70,39 @@ void Tree::propagateLightBasipetally(std::unique_ptr<Metamer> &metamer) {
   } else {
     metamer->light += metamer->terminal->light;
   }
+}
+
+void Tree::propagateGrowthAcropetally(std::unique_ptr<Metamer> &metamer) {
+  if (!metamer) {
+    return;
+  }
+  if (!metamer->axillary && !metamer->terminal) {
+    return;
+  }
+  const auto qM = metamer->terminal ? metamer->terminal->light : 0.0f;
+  const auto qL = metamer->axillary ? metamer->axillary->light : 0.0f;
+  // Dodge divisions by zero if these branches have not acquired any light.
+  if (qM + qL == 0.0f) {
+    return;
+  }
+  const auto v = metamer->growthResource;
+  const auto lambda = Environment::BorchertHondaLambda;
+  const auto denominator = lambda * qM + (1.0f - lambda * qL);
+  const auto vM = v * (lambda * qM) / denominator;
+  const auto vL = v * ((1.0f - lambda) * qL) / denominator;
+  if (metamer->axillary) {
+    metamer->axillary->growthResource = vL;
+    metamer->axillaryGrowthResource = 0.0f;
+  } else {
+    metamer->axillaryGrowthResource = vL;
+  }
+  if (metamer->terminal) {
+    metamer->terminal->growthResource = vM;
+    metamer->terminalGrowthResource = 0.0f;
+  } else {
+    metamer->terminalGrowthResource = vM;
+  }
+  metamer->growthResource = 0.0f;
 }
 
 std::unique_ptr<Metamer> Tree::attemptGrowth(BudId budId, Point origin, Vector direction) {

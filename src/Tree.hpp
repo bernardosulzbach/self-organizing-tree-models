@@ -38,4 +38,6 @@ private:
   void updateInternodeWidths(std::unique_ptr<Metamer> &metamer);
 
   void propagateLightBasipetally(std::unique_ptr<Metamer> &metamer);
+
+  void propagateGrowthAcropetally(std::unique_ptr<Metamer> &metamer);
 };
