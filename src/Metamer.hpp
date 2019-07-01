@@ -10,9 +10,11 @@ public:
   Point beginning{};
   Point end{};
 
+  Vector axillaryDirection;
+
   bool hasLeaf = false;
 
-  float width = Environment::MetamerLength / 8.0f;
+  float width = 0.0f;
 
   // Null indicates a bud.
   std::unique_ptr<Metamer> axillary;
@@ -24,6 +26,9 @@ public:
 
   float light = 0.0f;
 
+  float axillaryLight = 0.0f;
+  float terminalLight = 0.0f;
+
   float growthResource = 0.0f;
 
   float axillaryGrowthResource = 0.0f;
@@ -33,5 +38,9 @@ public:
 
   Point getCenter() const;
 
+  float getLength() const;
+
   U64 countMetamers() const;
+
+  Range getYRange() const;
 };

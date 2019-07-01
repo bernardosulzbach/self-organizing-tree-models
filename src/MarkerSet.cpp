@@ -7,7 +7,7 @@
 #include "PointAverage.hpp"
 #include "Random.hpp"
 
-MarkerSet::MarkerSet(float sideLength, U64 resolution, U64 pointCount)
+MarkerSet::MarkerSet(SplitMixGenerator &splitMixGenerator, float sideLength, U64 resolution, U64 pointCount)
     : xRange(-0.5f * sideLength, +0.5 * sideLength), yRange(0.0f, sideLength), zRange(-0.5f * sideLength, +0.5 * sideLength), resolution(resolution) {
   if (sideLength <= 0.0f) {
     throw std::domain_error("Side length cannot be <= 0.0f.");
@@ -20,7 +20,6 @@ MarkerSet::MarkerSet(float sideLength, U64 resolution, U64 pointCount)
     throw std::domain_error("Point count should be evenly divisible between the boxes.");
   }
   const auto pointsPerBox = pointCount / boxes;
-  SplitMixGenerator splitMixGenerator;
   for (U64 x = 0; x < resolution; x++) {
     markers.emplace_back();
     const auto xRangeMin = xRange.interpolate(x, resolution);

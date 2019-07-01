@@ -5,6 +5,7 @@
 #include "Marker.hpp"
 #include "MarkerSetRanges.hpp"
 #include "Point.hpp"
+#include "Random.hpp"
 #include "Range.hpp"
 #include "SpaceAnalysis.hpp"
 #include "Types.hpp"
@@ -20,7 +21,7 @@ public:
 
   std::vector<std::vector<std::vector<std::vector<Marker>>>> markers;
 
-  MarkerSet(float sideLength, U64 resolution, U64 pointCount);
+  MarkerSet(SplitMixGenerator &splitMixGenerator, float sideLength, U64 resolution, U64 pointCount);
 
   void resetAllocations();
 

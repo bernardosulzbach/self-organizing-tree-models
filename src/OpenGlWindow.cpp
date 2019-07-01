@@ -14,7 +14,7 @@
 
 constexpr uint32_t CylinderFaces = 16;
 constexpr uint32_t DefaultWindowSide = 800;
-constexpr uint32_t MultiSamplingSamples = 4;
+constexpr uint32_t MultiSamplingSamples = 16;
 
 static UserAction getUserActionFromKey(int key) {
   switch (key) {
@@ -219,7 +219,7 @@ static glm::mat4 getAlignmentMatrix(Vector a, Vector b) {
 glm::mat4 modelMatrixFromMetamer(const std::unique_ptr<Metamer> &metamer) {
   // The cylinder is 2 meters high and has 1 meter radius. Its center is at the origin.
   // Scale it on Y to get the right length.
-  const auto yScale = Environment::MetamerLength / 2.0f;
+  const auto yScale = metamer->getLength() / 2.0f;
   const auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(metamer->width, yScale, metamer->width));
   // Rotate it so that the orientation is correct.
   const auto rotation = getAlignmentMatrix(Vector(0.0f, 1.0f, 0.0f), Vector(metamer->beginning, metamer->end));
@@ -253,6 +253,7 @@ OpenGlWindow::OpenGlWindow() {
   glfwMakeContextCurrent(window);
   gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
   glfwSwapInterval(1);
+  glEnable(GL_DEPTH_TEST);
   glEnable(GL_MULTISAMPLE);
   if (window == nullptr) {
     throw std::runtime_error("Failed to create the OpenGL window.");
@@ -265,9 +266,9 @@ OpenGlWindow::~OpenGlWindow() {
   glfwDestroyWindow(window);
 }
 
-void OpenGlWindow::drawTree(const Environment &environment, const Tree &tree) {
-  const auto glmCameraPosition = glm::vec3(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-  const auto lookAtPosition = glm::vec3(0.0f, 0.5f, 0.0f);
+void OpenGlWindow::drawTree(const Tree &tree) {
+  const auto glmCameraPosition = glm::vec3(cameraPosition.x, tree.getYRange().getAverage() * 0.5f, cameraPosition.z);
+  const auto lookAtPosition = glm::vec3(0.0f, tree.getYRange().getAverage(), 0.0f);
   const auto viewMatrix = glm::lookAt(glmCameraPosition, lookAtPosition, glm::vec3(0.0f, 1.0f, 0.0f));
   const auto fov = 2.0f * std::atan(1.0f);
   const auto ratio = 1.0f;

@@ -47,7 +47,7 @@ public:
 
   virtual ~OpenGlWindow();
 
-  void drawTree(const Environment &environment, const Tree &tree);
+  void drawTree(const Tree &tree);
 
   void setShouldClose();
 
