@@ -34,6 +34,8 @@ add_executable(self-organizing-tree-models
                src/Metamer.hpp
                src/Vertex.cpp
                src/Vertex.hpp
+               src/Image.cpp
+               src/Image.hpp
                src/MarkerSet.cpp
                src/MarkerSet.hpp
                src/Color.cpp

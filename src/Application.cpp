@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "Environment.hpp"
+#include "Image.hpp"
 #include "OpenGlWindow.hpp"
 #include "Random.hpp"
 #include "Tree.hpp"
@@ -21,7 +22,13 @@ int main() {
     if (tree.countMetamers() < 5 * 1000) {
       tree.performGrowthIteration();
     } else {
-      // openGlWindow.setShouldClose();
+      std::vector<uint8_t> imageData(OpenGlWindow::DefaultWindowSide * OpenGlWindow::DefaultWindowSide * 3);
+      glReadBuffer(GL_BACK);
+      glReadPixels(0, 0, OpenGlWindow::DefaultWindowSide, OpenGlWindow::DefaultWindowSide, GL_RGB, GL_UNSIGNED_BYTE, imageData.data());
+      std::reverse(std::begin(imageData), std::end(imageData));
+      Image image(imageData, OpenGlWindow::DefaultWindowSide, OpenGlWindow::DefaultWindowSide);
+      image.writeToFile("screenshot.png");
+      openGlWindow.setShouldClose();
     }
     openGlWindow.swapBuffers();
     openGlWindow.pollEvents();

@@ -11,10 +11,10 @@
 
 #include "Color.hpp"
 #include "Text.hpp"
+#include "Types.hpp"
 
-constexpr uint32_t CylinderFaces = 16;
-constexpr uint32_t DefaultWindowSide = 800;
-constexpr uint32_t MultiSamplingSamples = 16;
+constexpr U32 CylinderFaces = 16;
+constexpr U32 MultiSamplingSamples = 16;
 
 static UserAction getUserActionFromKey(int key) {
   switch (key) {
@@ -248,6 +248,7 @@ OpenGlWindow::OpenGlWindow() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_SAMPLES, MultiSamplingSamples);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   window = glfwCreateWindow(DefaultWindowSide, DefaultWindowSide, "OpenGL Window", nullptr, nullptr);
   glfwSetKeyCallback(window, keyCallback);
   glfwMakeContextCurrent(window);

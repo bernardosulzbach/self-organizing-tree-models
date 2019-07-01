@@ -43,6 +43,8 @@ class OpenGlWindow {
   void updateCameraPosition();
 
 public:
+  static constexpr U32 DefaultWindowSide = 1024;
+
   OpenGlWindow();
 
   virtual ~OpenGlWindow();
