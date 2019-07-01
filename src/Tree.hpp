@@ -8,7 +8,7 @@
 #include "Point.hpp"
 #include "Types.hpp"
 
-static const float TropismGrowthDirectionWeightAttenuation = 0.95f;
+static constexpr float TropismGrowthDirectionWeightAttenuation = 0.95f;
 
 class Tree {
 public:
