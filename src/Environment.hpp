@@ -11,15 +11,17 @@ private:
   BudId nextBudId = 1;
 
 public:
+  static constexpr auto Pi = 3.1415926535897932384626433832795f;
+
   // In meters.
   static constexpr auto MetamerBaseLength = 0.01f;
 
   static constexpr auto OccupancyRadiusFactor = 2.0f;
   static constexpr auto PerceptionRadiusFactor = 4.0f;
 
-  static constexpr auto PerceptionAngle = 1.5f;
+  static constexpr auto PerceptionAngle = Pi / 2.0f;
 
-  static constexpr auto AxillaryPerturbationAngle = 0.25f;
+  static constexpr auto AxillaryPerturbationAngle = Pi / 18.0f;
 
   static constexpr auto BorchertHondaAlpha = 2.0f;
   static constexpr auto BorchertHondaLambda = 0.5f;
