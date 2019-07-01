@@ -32,7 +32,10 @@ class OpenGlWindow {
 
   std::chrono::steady_clock::time_point lastUpdate = std::chrono::steady_clock::now();
 
+  float fov = 2.0f * std::atan(1.0f);
+
   Point cameraPosition{0.0f, 0.5f, 1.0f};
+  Point lookAtPosition{0.0f, 0.0f, 1.0f};
 
   void initializePrograms();
 
@@ -48,6 +51,8 @@ public:
   OpenGlWindow();
 
   virtual ~OpenGlWindow();
+
+  void setCameraForTree(const Tree &tree);
 
   void drawTree(const Tree &tree);
 

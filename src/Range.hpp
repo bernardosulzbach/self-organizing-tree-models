@@ -1,12 +1,15 @@
 #pragma once
 
+#include <limits>
+
 #include "Types.hpp"
 
 class Range {
 public:
-  float minimum{};
-  float maximum{};
+  float minimum = std::numeric_limits<float>::max();
+  float maximum = std::numeric_limits<float>::min();
 
+  Range() = default;
   Range(float minimum, float maximum);
 
   Range merge(Range other) const;

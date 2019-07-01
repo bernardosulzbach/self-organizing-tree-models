@@ -3,18 +3,18 @@
 #include <algorithm>
 #include <limits>
 
+#include "Point.hpp"
+#include "Range.hpp"
+
 class BoundingBox {
 public:
-  double minX = std::numeric_limits<double>::max();
-  double minY = std::numeric_limits<double>::max();
-  double maxX = std::numeric_limits<double>::min();
-  double maxY = std::numeric_limits<double>::min();
+  Range xRange{};
+  Range yRange{};
+  Range zRange{};
 
-  void include(double x, double y);
+  BoundingBox() = default;
 
-  double getXInNormalizedSpace(double x) const;
+  void include(Point point);
 
-  double getYInNormalizedSpace(double y) const;
-
-  void scale(double factor);
+  BoundingBox merge(BoundingBox other) const;
 };

@@ -1,4 +1,6 @@
 #include "Metamer.hpp"
+#include "BoundingBox.hpp"
+#include <iostream>
 
 /**
  * Perturbates a vector in a random direction by the specified angle.
@@ -49,15 +51,15 @@ U64 Metamer::countMetamers() const {
   return count;
 }
 
-Range Metamer::getYRange() const {
-  const auto min = std::min(beginning.y, end.y);
-  const auto max = std::max(beginning.y, end.y);
-  Range range(min, max);
+BoundingBox Metamer::getBoundingBox() const {
+  BoundingBox boundingBox;
+  boundingBox.include(beginning);
+  boundingBox.include(end);
   if (axillary) {
-    range = range.merge(axillary->getYRange());
+    boundingBox = boundingBox.merge(axillary->getBoundingBox());
   }
   if (terminal) {
-    range = range.merge(terminal->getYRange());
+    boundingBox = boundingBox.merge(terminal->getBoundingBox());
   }
-  return range;
+  return boundingBox;
 }

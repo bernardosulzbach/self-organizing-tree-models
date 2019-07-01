@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "BoundingBox.hpp"
 #include "Environment.hpp"
 #include "Point.hpp"
 
@@ -42,5 +43,5 @@ public:
 
   U64 countMetamers() const;
 
-  Range getYRange() const;
+  BoundingBox getBoundingBox() const;
 };

@@ -267,13 +267,25 @@ OpenGlWindow::~OpenGlWindow() {
   glfwDestroyWindow(window);
 }
 
+void OpenGlWindow::setCameraForTree(const Tree &tree) {
+  const auto boundingBox = tree.getBoundingBox();
+  cameraPosition.x = boundingBox.xRange.getAverage();
+  cameraPosition.y = boundingBox.yRange.getAverage();
+  cameraPosition.z = boundingBox.zRange.minimum;
+  // d = (s/2) / tan(a/2)
+  const auto s = std::max(boundingBox.xRange.getLength(), boundingBox.yRange.getLength());
+  cameraPosition.z -= 0.75f * (s / 2.0f) / std::tan(fov / 2.0f);
+  lookAtPosition.x = boundingBox.xRange.getAverage();
+  lookAtPosition.y = boundingBox.yRange.getAverage();
+  lookAtPosition.z = boundingBox.zRange.getAverage();
+}
+
 void OpenGlWindow::drawTree(const Tree &tree) {
-  const auto glmCameraPosition = glm::vec3(cameraPosition.x, tree.getYRange().getAverage() * 0.5f, cameraPosition.z);
-  const auto lookAtPosition = glm::vec3(0.0f, tree.getYRange().getAverage(), 0.0f);
-  const auto viewMatrix = glm::lookAt(glmCameraPosition, lookAtPosition, glm::vec3(0.0f, 1.0f, 0.0f));
-  const auto fov = 2.0f * std::atan(1.0f);
+  const auto glmCameraPosition = glm::vec3(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+  const auto glmLookAtPosition = glm::vec3(lookAtPosition.x, lookAtPosition.y, lookAtPosition.z);
+  const auto viewMatrix = glm::lookAt(glmCameraPosition, glmLookAtPosition, glm::vec3(0.0f, 1.0f, 0.0f));
   const auto ratio = 1.0f;
-  const auto zNear = 0.1f;
+  const auto zNear = 0.01f;
   const auto zFar = 100.0f;
   const auto projectionMatrix = glm::perspective(fov, ratio, zNear, zFar);
   glUseProgram(openGlCylinderProgram);

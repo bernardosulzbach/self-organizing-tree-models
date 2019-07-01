@@ -1,4 +1,5 @@
 #include "Tree.hpp"
+#include "BoundingBox.hpp"
 
 #include <iostream>
 
@@ -17,11 +18,8 @@ U64 Tree::countMetamers() const {
   return root->countMetamers();
 }
 
-Range Tree::getYRange() const {
-  if (!root) {
-    return Range(0.0f, 0.0f);
-  }
-  return root->getYRange();
+BoundingBox Tree::getBoundingBox() const {
+  return root->getBoundingBox();
 }
 
 void Tree::performGrowthIteration() {
