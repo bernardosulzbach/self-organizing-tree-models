@@ -52,7 +52,7 @@ public:
 
   virtual ~OpenGlWindow();
 
-  void setCameraForTree(const Tree &tree);
+  void setCameraForBoundingBox(BoundingBox boundingBox);
 
   void drawTree(const Tree &tree);
 

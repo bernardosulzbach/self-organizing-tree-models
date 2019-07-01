@@ -267,14 +267,14 @@ OpenGlWindow::~OpenGlWindow() {
   glfwDestroyWindow(window);
 }
 
-void OpenGlWindow::setCameraForTree(const Tree &tree) {
-  const auto boundingBox = tree.getBoundingBox();
+void OpenGlWindow::setCameraForBoundingBox(BoundingBox boundingBox) {
   cameraPosition.x = boundingBox.xRange.getAverage();
   cameraPosition.y = boundingBox.yRange.getAverage();
   cameraPosition.z = boundingBox.zRange.minimum;
   // d = (s/2) / tan(a/2)
   const auto s = std::max(boundingBox.xRange.getLength(), boundingBox.yRange.getLength());
-  cameraPosition.z -= 0.75f * (s / 2.0f) / std::tan(fov / 2.0f);
+  // A magic factor to fill the screen more
+  cameraPosition.z -= 0.5f * (s / 2.0f) / std::tan(fov / 2.0f);
   lookAtPosition.x = boundingBox.xRange.getAverage();
   lookAtPosition.y = boundingBox.yRange.getAverage();
   lookAtPosition.z = boundingBox.zRange.getAverage();

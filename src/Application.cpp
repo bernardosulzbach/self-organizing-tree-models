@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <iostream>
+#include <optional>
 
 #include "Environment.hpp"
 #include "Image.hpp"
@@ -26,12 +27,23 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   Mode mode = Mode::Standard;
+  std::optional<BoundingBox> userSpecifiedBoundingBox;
   for (int i = 0; i < argc; i++) {
     const auto argument = std::string(argv[i]);
     if (argument == "--image") {
       mode = Mode::Image;
     } else if (argument == "--video") {
       mode = Mode::Video;
+    } else if (argument == "--bounding-box") {
+      std::stringstream values;
+      for (int j = 0; j < 6; j++) {
+        i++;
+        if (j != 0) {
+          values << ' ';
+        }
+        values << argv[i];
+      }
+      userSpecifiedBoundingBox = BoundingBox(values.str());
     }
   }
   const auto begin = std::chrono::steady_clock::now();
@@ -44,7 +56,11 @@ int main(int argc, char *argv[]) {
   while (!openGlWindow.shouldClose()) {
     const auto metamerCount = tree.countMetamers();
     openGlWindow.startDrawing();
-    openGlWindow.setCameraForTree(tree);
+    if (userSpecifiedBoundingBox) {
+      openGlWindow.setCameraForBoundingBox(userSpecifiedBoundingBox.value());
+    } else {
+      openGlWindow.setCameraForBoundingBox(tree.getBoundingBox());
+    }
     if (mode == Mode::Standard || mode == Mode::Video) {
       openGlWindow.drawTree(tree);
     }
@@ -70,6 +86,7 @@ int main(int argc, char *argv[]) {
     openGlWindow.swapBuffers();
     openGlWindow.pollEvents();
   }
+  std::cout << "Tree bounding box: " << tree.getBoundingBox().toString() << '\n';
   std::cout << "Metamers: " << tree.countMetamers() << '\n';
   glfwTerminate();
   return 0;

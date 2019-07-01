@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <string>
 
 #include "Point.hpp"
 #include "Range.hpp"
@@ -14,7 +15,13 @@ public:
 
   BoundingBox() = default;
 
+  explicit BoundingBox(const std::string &string);
+
+  BoundingBox(const Range &xRange, const Range &yRange, const Range &zRange);
+
   void include(Point point);
 
   BoundingBox merge(BoundingBox other) const;
+
+  std::string toString() const;
 };
