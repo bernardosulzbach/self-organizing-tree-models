@@ -30,7 +30,7 @@ float evaluateAttenuation(float d) {
 vec3 phongWithSpecular(vec4 light, vec4 normal, vec4 reflection, vec4 view, vec3 color, float distance) {
   const float attenuation = evaluateAttenuation(distance);
   const float specularCoefficient = 0.1;
-  const float surfaceSpecularity = 0.1;
+  const float surfaceSpecularity = 0.001;
   const float specularComponent = attenuation * specularCoefficient * pow(max(0.0, dot(view, reflection)), surfaceSpecularity);
   return ambientLightIntensity * color + attenuation * max(0.0, dot(normal, light)) * color + specularComponent;
 }
