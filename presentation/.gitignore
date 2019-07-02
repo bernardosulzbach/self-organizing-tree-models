@@ -1,0 +1,13 @@
+**/.idea
+
+*.nav
+*.snm
+*.toc
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.pdf
+*.bcf
+*.run.xml
