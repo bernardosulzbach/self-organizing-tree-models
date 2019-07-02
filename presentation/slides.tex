@@ -12,8 +12,7 @@
 
 \hypersetup{
   colorlinks = true,
-  citecolor = BrickRed,
-  urlcolor = ForestGreen
+  urlcolor = OwlRed,
 }
 
 \title{Self-organizing tree models}
@@ -25,20 +24,119 @@
 
 \begin{document}
 
+
 \begin{frame}
 \titlepage
 \end{frame}
 
-\begin{frame}{The tree}
-\begin{figure}
-\includegraphics[width=6cm]{resources/sample-tree.png}
-\caption{5517 metamers. Default parameter set. 1.0 s.}
-\end{figure}
 
+\begin{frame}{What is it?}
+A C++ implementation of the main found in Palubicki 2009.
+
+% The code is documented in order to help an interested reader to better understand how the paper was implemented.
+
+The results are structurally comparable to those shown in the original paper.
+
+However, visually, the results are inferior. This is because the rendering is done through OpenGL rasterization, with no shadows, and just the instantiation of internodes as cylinders.
+
+Performance-wise, this implementation seems to be about as efficient as the one found in the original paper.
 \end{frame}
 
+
+\begin{frame}{The problem}
+Complex trees pose a challenge for 3D artists. Not only modelling large-scale realistic trees is difficult, the amount of complexity required to make trees which are not too repetitive makes this activity very time-consuming.
+\end{frame}
+
+
+\begin{frame}{Core ideas}
+The paper is based on the assumption that the form of a developing tree emerges from a self-organizing process dominated by the competition of buds and branches for light or space, and regulated by internal signaling mechanisms.
+
+The procedure integrates three elements of tree development: local control of branching geometry, competition of buds and branches for space and light, and regulation of this competition through a signaling mechanism.
+\end{frame}
+
+
+\begin{frame}{Overall structure}
+Starting with a seedling (just a single metamer in this implementation), the following steps make up a simulation iteration.
+
+\begin{enumerate}
+\item Calculate of the local environment of buds
+\item Determine bud fate
+\item Append new shoots (sequences of metamers)
+\item Shed branches
+\item Update branch width
+\end{enumerate}
+\end{frame}
+
+
+\begin{frame}{Terminology}
+A \textbf{node} is the point at which one or more leaves are or were attached to a stem.
+
+An \textbf{internode} is the part of the stem between two nodes.
+
+A \textbf{lateral bud} is created in the axil of each leaf.
+
+A \textbf{metamer} is an internode with attached leaf and bud.
+\end{frame}
+
+
+\begin{frame}{Calculation of the environmental input}
+There are two methods for performing this step:
+\begin{itemize}
+\item Space colonization,
+\item Shadow propagation.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Calculation of bud fate}
+In this phase the environmental input (the availability of free space or light) is used to determine which buds will produce new shoots and how large they will be.
+
+This can be done through:
+
+\begin{itemize}
+\item Extended Borchert-Honda model,
+\item Priority model.
+\end{itemize}
+
+A bud may have four different fates: produce a new metamer, produce a flower, remain dormant, or abort.
+
+In this implementation, flowering has not been implemented.
+\end{frame}
+
+
+\begin{frame}{Addition of new shoots}
+The direction of the metamers of new shoots is determined by three vectors:
+
+\begin{enumerate}
+\item The default orientation,
+\item The optimal growth vector,
+\item The gravitropism vector.
+\end{enumerate}
+\end{frame}
+
+
+\begin{frame}{Shedding of branches}
+We do not perform any type of shedding or pruning.
+
+According to the original paper, the shedding method proposed is suitable for models which rely on shadow propagation rather than space colonization, because of the binary nature of the environmental input in the case of space colonization.
+\end{frame}
+
+
+\begin{frame}{Calculation of branch diameter}
+The formula used to calculate branch diameter is the same one used in the paper.
+
+\[d = \left({d_1}^n + {d_2}^n\right)^{1 / n}\]
+
+Because this implementation does not perform any shedding or pruning, it is not required to retain a memory of past leaves and branches in order to calculate the diameters correctly.
+
+This is the pipe model, introduced in 1964 by Shinozaki et al., the values used for the default parameter set of this implementation are \(n = 2\) and a leaf value of \(10^{-8}\). All metamers are assumed to have leaves.
+\end{frame}
+
+
 \begin{frame}{Parameters}
-The algorithm has several parameters. Even small changes in these parameters can change trees dramatically.
+The algorithm has several parameters.
+
+Small variations in these parameters can cause big changes.
 \begin{table}
 \resizebox{\textwidth}{!}{
     \centering
@@ -64,13 +162,85 @@ The algorithm has several parameters. Even small changes in these parameters can
 \end{table}
 \end{frame}
 
+
+\begin{frame}{Talked too much, showed too little}
+Now to the pictures and videos.
+\end{frame}
+
+
+\begin{frame}{Meet the sample tree}
+\begin{figure}
+\includegraphics[width=6cm]{../resources/sample-tree-0.png}
+\caption{About 5,000 metamers. Default parameter set. 1.0 s.}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}{Results}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-2-1.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-2-2.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-2-4.png}
+\caption{Axillary perturbation angles of \(\pi / 2\), \(\pi / 90\), \(\pi / 7500\), respectively. A very small angle makes it so that often only one bud will continue to grow, which causes the three to have few, but long and twisting branches.}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}{Results}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-4-1.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-4-2.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-4-4.png}
+\caption{Borchert-Honda \(\lambda\) at 0.46, 0.50, and 0.56, respectively. As described in the original paper, a value smaller than 0.5 (which biases the growth-inducing resource towards the axillary axes) creates bush-like structures, while a value larger than 0.5 creates elongated tree-like structures.}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}{Results}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-6-1.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-6-2.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-6-4.png}
+\caption{Tropism (gravitropism) growth direction weight \(\eta\) at 0.3, 0.5, and 0.9, respectively. The more positive this value is, the more the tree tries to grow upwards. Negative values cause the tree branches to grow downward. However, these values can only be made negative after the tree has already grown to a certain height, as it will just sprawl over the ground otherwise.}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}{Results}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.64\textwidth]{../resources/large-tree-1.png}
+\caption{A larger tree, used to validate the integrity of the implementation. This tree has 509,612 metamers and its simulation took 45.3 seconds.}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}{Materials}
+\href{https://github.com/bernardosulzbach/self-organizing-tree-models}{The repository of the implementation}, which is licensed under the BSD 2-Clause ``Simplified'' License, is publicly accessible.
+
+\href{https://inf.ufrgs.br/~bsulzbach/share/computer-graphics/}{The images and videos} generated for this paper are also made available.
+\end{frame}
+
+
 \begin{frame}{Implementation}
 The simulation was implemented in C++ 17 and OpenGL.
 
 It is single-threaded and ran on a 3.2 GHz AMD FX.
 
-Relevant software: GCC 9.1.1, CMake 3.13.4, Linux 5.1.7-1.
-
+CMake 3.13.4 was used for project management and makefile generation, GCC 9.1.1 was the used compiler.
+Everything ran on OpenSUSE Tumbleweed, using Linux 5.1.7.
 \end{frame}
+
+
+\begin{frame}{Conclusions}
+The implemented algorithm is capable of generating realistic tree structures in a very short amount of time. However, transforming these structures into continuous meshes still poses a challenge.
+
+Additionally, the parameters are all very mathematical, bearing little meaning to an artist.
+A framework which could translate other, more mundane and natural, parameters into the parameters used in this algorithm could mitigate the issue.
+\end{frame}
+
 
 \end{document}
