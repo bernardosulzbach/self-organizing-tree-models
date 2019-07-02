@@ -1,9 +1,12 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage[parfill]{parskip}
-\usepackage[margin=2cm]{geometry}
+\usepackage[margin=3cm]{geometry}
+\usepackage{float}
 \usepackage{sectsty}
 \usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{csquotes}
 \usepackage[
@@ -30,24 +33,34 @@
 
 \maketitle
 
-\section{Paper overview}
+\begin{abstract}
 
 This is a C++ implementation of the main ideas from \cite{Palubicki2009}.
+The code is documented in order to help an interested reader to better understand how the paper was implemented.
+The results are structurally comparable to those shown in the original paper.
+However, visually, the results are inferior. This is because the rendering is done through OpenGL rasterization, with no shadows, and no more than the instantiation of internodes as cylinders.
+Performance-wise, this implementation is about as efficient as the one found in the original paper.
 
-The code is fairly well-documented in order to help an interested reader better understand how the paper was implemented.
+\end{abstract}
 
-\section{Paper overview}
+\section{The problem}
+
+Complex trees pose a challenge for 3D artists. Not only modelling large-scale realistic trees is difficult, the amount of complexity required to make trees which are not too repetitive makes this activity very time-consuming.
+
+\section{The techniques}
+
+\subsection{Core ideas}
 
 The paper is based on the assumption that the form of a developing tree emerges from a self-organizing process dominated by the competition of buds and branches for light or space, and regulated by internal signaling mechanisms.
 
-The method integrates three elements of tree development: local control of branching geometry, competition of buds and branches for space or light, and regulation of this competition through an internal signaling mechanism.
+The procedure integrates three elements of tree development: local control of branching geometry, competition of buds and branches for space and light, and regulation of this competition through a signaling mechanism.
 
 \subsection{Overall structure}
 
-Starting with a seedling (just a single metamer in this implementation), the following outline is a simulation step.
+Starting with a seedling (just a single metamer in this implementation), the following steps make up a simulation iteration.
 
 \begin{enumerate}
-\item Calculate local environment of buds
+\item Calculate of the local environment of buds
 \item Determine bud fate
 \item Append new shoots (sequences of metamers)
 \item Shed branches
@@ -56,9 +69,10 @@ Starting with a seedling (just a single metamer in this implementation), the fol
 
 \subsection{Terminology}
 
-The point at which one or more leaves are or were attached to a stem is a \textbf{node}.
-The part of the stem between two nodes is an \textbf{internode}.
+A \textbf{node} is the point at which one or more leaves are or were attached to a stem.
+An \textbf{internode} is the part of the stem between two nodes.
 A \textbf{lateral bud} is created in the axil of each leaf.
+
 An internode with attached leaf and bud forms a \textbf{metamer}.
 
 A bud may have four different fates: produce a new metamer, produce a flower, remain dormant, or abort.
@@ -66,44 +80,46 @@ In this implementation, flowering has not been implemented.
 
 Endogenous information flow may be \textit{acropetal} (from the base of the tree towards its extremities), \textit{basipetal} (from the extremities to the base) or bidirectional.
 
-\section{Calculation of the environmental input}
+\subsection{Calculation of the environmental input}
 
-There are two methods for doing this assessment: \textbf{space colonization} and \textbf{shadow propagation}.
+There are two methods for performing this step: \textbf{space colonization} and \textbf{shadow propagation}.
 
-\subsection{Space colonization}
+\subsubsection{Space colonization}
 
 In each iteration, the process estimates the availability or quality of the space surrounding each bud (a number \(Q\)), and the optimal direction of shoot growth (a vector \(\vec{V}\)).
 
 Each bud is surrounded by a spherical occupancy zone of radius \(\rho\) and has a conical perception volume characterized by the perception angle \(\theta\) and the distance \(r\).
 
-Typical values are \(\theta \approx \frac{\pi}{2}\), \(\rho\) = 2 internode lengths, and \(r\) = 4 to 6 internode lengths.
+Typical values are \(\theta \approx \frac{\pi}{2}\), \(\rho\) = 2 times the internode length, and \(r\) = 4 to 6 times the internode length, according to \cite[p. 3]{Palubicki2009}.
 
 The space available for tree growth is represented by a set \(S\) of marker points.
-According to \cite[p. 3]{Palubicki2009}, these points may be generated algorithmically, with uniform distribution, at the beginning of the simulation, when user interaction is not required.
+When user interaction is not required, these points may be generated algorithmically, with uniform distribution, at the beginning of the simulation, as by \cite[p. 3]{Palubicki2009}.
+In this implementation user interaction is not supported and the algorithm proposed in \cite{Steele2014} was used to generate the random numbers. The initial seed is 1.
 
-In each iteration, markers within the occupancy zone of any bud are deleted from the set.
-
+In each iteration, markers within the occupancy zone of any bud (a sphere or radius \(\rho\)) are deleted from the set.
 The buds then compete for the remaining points.
 
 A marker within the perception volume of a single bud is associated with this bud. A marker within the perception volume of several buds is associated with the closest of these buds.
+In this implementation, there is an allocation phase in which markers are assigned to their nearest buds.
 
 A bud A has space for growth (and \(Q\) = 1) if the set S(A) of markers associated with A is nonempty. Otherwise, bud A has no available space (and \(Q\) = 0).
 
 The optimal growth direction \(\vec{V}\) is calculated as the normalized sum of the normalized vectors towards all markers in S(A).
 
-\subsection{Shadow propagation}
+\subsubsection{Shadow propagation}
 
-Shadow propagation was not implemented, as only one method is used in a single simulation.
+Shadow propagation was not implemented, as only one method is used in a simulation.
 
-\section{Calculation of bud fate}
+\subsection{Calculation of bud fate}
 
 In this phase the environmental input (the availability of free space or light) is used to determine which buds will produce new shoots and how large they will be.
 
-This can be done through the \textbf{extended Borchert-Honda model} and the \textbf{priority model}.
+This can be done through the \textbf{extended Borchert-Honda model}  and the \textbf{priority model}.
 
-\subsection{Extended Borchert-Honda model}
+\subsubsection{Extended Borchert-Honda model}
 
-The authors extended the Borchert-Honda model (which was a purely endogenous mechanism that regulates the extent of branching by controlling the distribution of a growth-inducing resource to buds) to use the amount of light received by the buds to guide the distribution.
+The authors of \cite{Palubicki2009} extended the Borchert-Honda model to also use the amount of light received by the buds to guide the distribution.
+The original model presented in \cite{Borchert1984} was a purely endogenous mechanism to regulate the extent of branching by controlling the distribution of a growth-inducing resource to buds.
 
 In the first pass of the model, information about the amount of light \(Q\) that reaches the buds flows basipetally, and its cumulative values are stored within the internodes.
 
@@ -111,49 +127,136 @@ There is a coefficient of proportionality \(\alpha\) which determines how much r
 
 The amount of resource \(v\) reaching a branching point is distributed between the continuing main axis (\(v_m\)) and the lateral branch (\(v_l\)) using the following equations, in which \(\lambda \in [0, 1]\) controls whether the allocation is biased towards the main axis (\(\lambda > 0.5\)) or towards the lateral branch (\(\lambda < 0.5\)).
 
-\[v_m = v \frac{\lambda Q_m}{\lambda Q_m + (1 - \lambda Q_l)}\]
+\[v_m = v \frac{\lambda Q_m}{\lambda Q_m + (1 - \lambda)Q_l}\]
 
-\[v_l = v \frac{(1 - \lambda) Q_l}{\lambda Q_m + (1 - \lambda Q_l)}\]
+\[v_l = v \frac{(1 - \lambda) Q_l}{\lambda Q_m + (1 - \lambda)Q_l}\]
+
+Note that the growth-inducing resource is preserved during this distribution.
+
+\begin{align*}
+v_m + v_l &= v \left(\frac{\lambda Q_m}{\lambda Q_m + (1 - \lambda)Q_l} + \frac{(1 - \lambda) Q_l}{\lambda Q_m + (1 - \lambda)Q_l}\right) \\
+          &= v \left(\frac{\lambda Q_m + (1 - \lambda) Q_l}{\lambda Q_m + (1 - \lambda)Q_l}\right) \\
+          &= v
+\end{align*}
 
 The number of metamers produced by a bud is given by \(n = \lfloor v \rfloor\). The authors of \cite{Palubicki2009} calculate a variable length of the metamers using the formula \(l = \frac{v}{n}\), which is bound to be in \([1, 2]\) for the values it will be evaluated.
-This was not implemented.
+This implementation implements the extended Borchert-Honda model as presented in the original paper.
 
-\subsection{Priority model}
+\subsubsection{Priority model}
 
 Instead of allocating by considering one branching point at a time as the extended Borchert-Honda model does, the priority model operates at the level of entire axes.
 
-This model was not implemented.
+This model was not implemented as only one model is used in a simulation.
 
-\section{Addition of new shoots}
+\subsection{Addition of new shoots}
 
 By default, new shoots are made in the direction pointed to by the buds.
 Terminal buds have the orientation of their supporting internodes and lateral buds have orientation defined by \href{https://en.wikipedia.org/wiki/Phyllotaxis}{phyllotaxis} and the branching angle between the bud and its parent internode.
+In this implementation, the default direction of lateral buds is randomly generated in a cone of angle \(\pi / 18\) around the default direction of the terminal bud.
 
-The orientation of consecutive metamers forming a shoot is modified by two factors: the optimal growth direction determined by the environment (the \(\vec{V}\) vector) and the tropism (the tendency to maintain a preferred orientation with respect to gravity).
-
+The orientation of consecutive metamers forming a shoot is modified by two factors: the optimal growth direction determined by the environment (the \(\vec{V}\) vector) and the gravitropism, which is the tendency to maintain a preferred orientation with respect to gravity.
 Therefore, the actual orientation of a metamer is calculated as a weighted sum of three vectors: the default orientation, the optimal growth direction (with weight \(\xi\)), and a tropism vector (with weight \(\eta\)).
 
 These weights can be changed over time in order to be able to generate a wider range of trees.
 
-\section{Shedding of branches}
+\subsection{Shedding of branches}
 
 We do not perform any type of shedding or pruning. According to \cite{Palubicki2009}, the shedding method proposed by the authors is suitable for models which rely on shadow propagation rather than space colonization, because of the binary nature of the environmental input in the case of space colonization.
 
-\section{Calculation of branch diameter}
-
+\subsection{Calculation of branch diameter}
 The formula used to calculate branch diameter is the same one used in \cite{Palubicki2009}.
 
-\[d = \left({d_1}^n + {d_2}^n\right)^{\frac{1}{n}}\]
+\[d = \left({d_1}^n + {d_2}^n\right)^{1 / n}\]
 
 Because this implementation does not perform any shedding or pruning, it is not required to retain a memory of past leaves and branches in order to calculate the diameters correctly.
 
+This is the pipe model, introduced in \cite{Shinozaki1964}, the values used for the default parameter set of this implementation are \(n = 2\) and a leaf value of \(10^{-8}\). All metamers are assumed to have leaves.
+
+\subsection{Parameters}
+
+The algorithm has several parameters, as mentioned above. The following table summarises these parameters and what their default values in the simulations were.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|l|r}
+    Symbol & Variable & Value \\
+    \hline
+    \(\rho\)    & \texttt{OccupancyRadiusFactor}                   & 2            \\
+    \(r\)       & \texttt{PerceptionRadiusFactor}                  & 4            \\
+    \(\theta\)  & \texttt{PerceptionAngle}                         & \(\pi / 2\)  \\
+    \hline
+    \(\alpha\)  & \texttt{BorchertHondaAlpha}                      & 2            \\
+    \(\lambda\) & \texttt{BorchertHondaLambda}                     & 0.5          \\
+    \hline
+    \(\xi\)     & \texttt{OptimalGrowthDirectionWeight}            & 0.2          \\
+    \(\eta\)    & \texttt{TropismGrowthDirectionWeight}            & 0.5          \\
+                & \texttt{TropismGrowthDirectionWeightAttenuation} & 0.95         \\
+                & \texttt{AxillaryPerturbationAngle}               & \(\pi / 18\) \\
+    \hline
+    \(n\)       & \texttt{PipeModelExponent}                       & 2            \\
+                & \texttt{PipeModelLeafValue}                      & \(10^{-8}\)  \\
+    \hline
+    \end{tabular}
+    \caption{The default set of parameters used in this implementation.}
+\end{table}
+
 \section{Implementation details}
 
-The code was written using C++17 features, and CMake 3.11 to manage the sources. Only modern Linux compatibility was accounted for.
+The code was written using C++17 features, and CMake 3.13.4 to manage the build process.
+Only modern Linux compatibility was accounted for.
+The repository has build instructions.
+GCC 9.1.1 was used, on OpenSUSE Tumbleweed, running Linux 5.1.7-1.
 
-In order to speed up the implementation of space colonization, I've used uniform space partitioning, as it was done in \cite{Palubicki2009}.
+In order to speed up space colonization, I used uniform space partitioning, as it was done in \cite{Palubicki2009}.
 
 According to \cite{Palubicki2009}, space colonization was about three times slower than shadow propagation, while the extended Borchert-Honda model and the priority model had similar performance.
+The authors of \cite{Palubicki2009} used L-studio, L+C and C++. Running on a 2.4 GHz Pentium 4 using shadow propagation instead of space colonization, a simulation with 642,000 internodes took them 60 seconds.
+This implementation took 46 seconds to simulate a tree with 509,000 internodes on a 3.2 GHz AMD FX, using a single thread of execution.
+
+\section{Results}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-2-1.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-2-2.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-2-4.png}
+\caption{Axillary perturbation angles of \(\pi / 2\), \(\pi / 90\), \(\pi / 7500\), respectively. A very small angle makes it so that often only one bud will continue to grow, which causes the three to have few, but long and twisting branches.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-4-1.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-4-2.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-4-4.png}
+\caption{Borchert-Honda \(\lambda\) at 0.46, 0.50, and 0.56, respectively. As described in the original paper, a value smaller than 0.5 (which biases the growth-inducing resource towards the axillary axes) creates bush-like structures, while a value larger than 0.5 creates elongated tree-like structures.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-6-1.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-6-2.png}
+\includegraphics[width=0.32\textwidth]{../resources/sample-tree-6-4.png}
+\caption{Tropism (gravitropism) growth direction weight \(\eta\) at 0.3, 0.5, and 0.9, respectively. The more positive this value is, the more the tree tries to grow upwards. Negative values cause the tree branches to grow downward. However, these values can only be made negative after the tree has already grown to a certain height, as it will just sprawl over the ground otherwise.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{../resources/large-tree-1.png}
+\caption{A larger tree, used to validate the integrity of the implementation. This tree has 509,612 metamers and its simulation took 45.3 seconds.}
+\end{figure}
+
+\section{Conclusions}
+
+The implemented algorithm is capable of generating realistic tree structures in a very short amount of time. However, transforming these structures into continuous meshes still poses a challenge.
+
+Additionally, the parameters are all very mathematical, bearing little meaning to an artist.
+A framework which could translate other, more mundane and natural, parameters into the parameters used in this algorithm could mitigate the issue.
+
+\section{Materials}
+
+\href{https://github.com/bernardosulzbach/self-organizing-tree-models}{The Git repository of the implementation}, which is licensed under the BSD 2-Clause ``Simplified'' License, is publicly accessible.
+
+\href{https://inf.ufrgs.br/~bsulzbach/share/computer-graphics/}{The images and videos} generated for this paper are also available.
 
 \printbibliography
 
