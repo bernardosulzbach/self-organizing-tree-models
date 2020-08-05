@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include "Point.hpp"
 #include "Types.hpp"
 
