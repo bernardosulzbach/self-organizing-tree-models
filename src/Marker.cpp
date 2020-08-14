@@ -2,5 +2,5 @@
 
 void Marker::resetAllocation() {
   allocationId = 0;
-  distanceToAllocated = std::numeric_limits<float>::infinity();
+  distanceToAllocated = std::numeric_limits<F32>::infinity();
 }

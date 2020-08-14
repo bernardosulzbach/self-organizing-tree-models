@@ -1,20 +1,22 @@
 #pragma once
 
+#include "Types.hpp"
+
 #include <string>
 
 class Point {
 public:
-  float x{};
-  float y{};
-  float z{};
+  F32 x{};
+  F32 y{};
+  F32 z{};
 
   Point() = default;
 
-  Point(float x, float y, float z);
+  Point(F32 x, F32 y, F32 z);
 
-  Point translate(float dx, float dy, float dz);
+  Point translate(F32 dx, F32 dy, F32 dz);
 
-  float distance(const Point &other) const;
+  [[nodiscard]] F32 distance(const Point &other) const;
 
-  std::string toString() const;
+  [[nodiscard]] std::string toString() const;
 };

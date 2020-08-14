@@ -9,7 +9,7 @@ class Marker {
 public:
   Point position{};
   U64 allocationId{};
-  float distanceToAllocated = std::numeric_limits<float>::infinity();
+  F32 distanceToAllocated = std::numeric_limits<float>::infinity();
 
   void resetAllocation();
 };
