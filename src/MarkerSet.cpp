@@ -1,7 +1,6 @@
 #include "MarkerSet.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <stdexcept>
 
 #include "PointAverage.hpp"

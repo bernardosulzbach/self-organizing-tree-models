@@ -2,7 +2,9 @@
 
 #include <array>
 
+#include "Types.hpp"
+
 class Color {
 public:
-  std::array<float, 4> channels{};
+  std::array<F32, 4> channels{};
 };

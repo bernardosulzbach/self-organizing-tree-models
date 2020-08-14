@@ -1,9 +1,11 @@
 #pragma once
 
+#include "Types.hpp"
+
 #include "Vector.hpp"
 
 class SpaceAnalysis {
 public:
-  float q{};
+  F32 q{};
   Vector v{};
 };

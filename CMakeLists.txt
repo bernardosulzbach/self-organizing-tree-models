@@ -32,31 +32,25 @@ add_executable(self-organizing-tree-models
                src/OpenGlWindow.hpp
                src/Metamer.cpp
                src/Metamer.hpp
-               src/Vertex.cpp
                src/Vertex.hpp
                src/Image.cpp
                src/Image.hpp
                src/MarkerSet.cpp
                src/MarkerSet.hpp
-               src/Color.cpp
                src/Color.hpp
                src/Range.cpp
                src/Range.hpp
-               src/Types.cpp
                src/Types.hpp
                src/Text.cpp
                src/Text.hpp
                src/Vector.cpp
                src/Vector.hpp
-               src/SpaceAnalysis.cpp
                src/SpaceAnalysis.hpp
                src/PointAverage.cpp
                src/PointAverage.hpp
-               src/MarkerSetRanges.cpp
                src/MarkerSetRanges.hpp
                src/Marker.cpp
                src/Marker.hpp
-               src/UserAction.cpp
                src/UserAction.hpp)
 
 find_package(glm REQUIRED)
